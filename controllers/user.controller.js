@@ -7,6 +7,55 @@ import nodemailer from "nodemailer";
 // @route   POST /user/create
 // @access  Public
 
+const sendOtp = asyncHandler(async (req, res) => {
+  const { mobile } = req.body;
+  if (!mobile) {
+    return res.status(400).json({ error: "Please add all fields" });
+  }
+
+  // Check if user exists
+  const userExists = await User.findOne({ mobile });
+
+  if (userExists) {
+    // send otp in both email and mobile number
+    const myOtp = generateOtp();
+
+    await User.findByIdAndUpdate(
+      { _id: userExists._id },
+      {
+        otp: myOtp,
+      }
+    );
+
+    console.log("OTP saved in db", myOtp);
+
+    console.log(
+      "Otp sent to  " + userExists.email + "and " + userExists.mobile
+    );
+    return res.status(200).json({
+      message: "OTP successfully sent to your email and contact number",
+      status: true,
+    });
+  } else {
+    //send otp only in mobile number
+    const myOtp = generateOtp();
+    console.log("OTP generated", myOtp);
+
+    const user = await User.create({
+      otp: myOtp,
+      mobile,
+    });
+
+    console.log("OTP saved in db", myOtp);
+
+    console.log("Otp sent to " + user.mobile);
+    return res.status(200).json({
+      message: "OTP successfully sent to your contact number",
+      status: true,
+    });
+  }
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, mobile, pan, aadhar, dob, avatar } = req.body;
   // console.log("registerUser");
@@ -26,6 +75,7 @@ const registerUser = asyncHandler(async (req, res) => {
   // const hashedPassword = await bcrypt.hash(password, salt)
 
   // Create user
+
   const user = await User.create({
     name,
     email,
@@ -120,4 +170,9 @@ const generateToken = (id) => {
   });
 };
 
-export { getAllUser, registerUser, loginUser, getMe };
+// Generate OTP
+const generateOtp = () => {
+  return Math.floor(Math.random() * 1000000 + 1);
+};
+
+export { getAllUser, registerUser, loginUser, getMe, sendOtp };

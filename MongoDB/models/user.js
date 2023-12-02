@@ -2,13 +2,14 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, default: " " },
-    mobile: { type: Number, required: true, default: " " },
-    email: { type: String, required: true, default: " " },
-    dob: { type: String, required: true, default: " " },
-    aadhar: { type: Number, required: true },
-    pan: { type: String, required: true, default: " " },
-    avatar: { type: String, required: true, default: " " },
+    name: { type: String, default: "" },
+    mobile: { type: Number, required: true, default: "" },
+    email: { type: String, default: "" },
+    dob: { type: String, default: "" },
+    aadhar: { type: Number },
+    pan: { type: String, default: "" },
+    avatar: { type: String, default: "" },
+    otp: { type: Number, default: "" },
   },
   { timestamps: true }
 );
