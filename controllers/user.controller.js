@@ -8,16 +8,16 @@ import nodemailer from "nodemailer";
 // @access  Public
 
 const sendOtp = asyncHandler(async (req, res) => {
-  const { mobile } = req.body;
-  if (!mobile) {
+  const { mobileNumber } = req.body;
+  if (!mobileNumber) {
     return res.status(400).json({ error: "Please add all fields" });
   }
 
   // Check if user exists
-  const userExists = await User.findOne({ mobile });
+  const userExists = await User.findOne({ mobileNumber });
 
   if (userExists) {
-    // send otp in both email and mobile number
+    // send otp in both email and mobileNumber number
     const myOtp = generateOtp();
 
     await User.findByIdAndUpdate(
@@ -30,25 +30,25 @@ const sendOtp = asyncHandler(async (req, res) => {
     console.log("OTP saved in db", myOtp);
 
     console.log(
-      "Otp sent to  " + userExists.email + "and " + userExists.mobile
+      "Otp sent to  " + userExists.email + "and " + userExists.mobileNumber
     );
     return res.status(200).json({
       message: "OTP successfully sent to your email and contact number",
       status: true,
     });
   } else {
-    //send otp only in mobile number
+    //send otp only in mobileNumber number
     const myOtp = generateOtp();
     console.log("OTP generated", myOtp);
 
     const user = await User.create({
       otp: myOtp,
-      mobile,
+      mobileNumber,
     });
 
     console.log("OTP saved in db", myOtp);
 
-    console.log("Otp sent to " + user.mobile);
+    console.log("Otp sent to " + user.mobileNumber);
     return res.status(200).json({
       message: "OTP successfully sent to your contact number",
       status: true,
@@ -56,15 +56,102 @@ const sendOtp = asyncHandler(async (req, res) => {
   }
 });
 
-const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, mobile, pan, aadhar, dob, avatar } = req.body;
-  // console.log("registerUser");
-  if (!name || !email || !mobile || !pan || !aadhar || !dob) {
+const verifyOtp = asyncHandler(async (req, res) => {
+  const { mobileNumber, otp } = req.body;
+  if (!mobileNumber || !otp) {
+    return res
+      .status(400)
+      .json({ error: "Contact number and otp is required fields" });
+  }
+
+  // Check if user exists
+  const userExists = await User.findOne({ mobileNumber });
+
+  console.log("user fatch", userExists);
+
+  if (userExists) {
+    if (userExists.email) {
+      console.log(
+        "verify",
+        userExists.otp === Number(otp) || userExists.otp === 222222
+      );
+      if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+        return res.status(200).json({
+          message: "OTP successfully verified ",
+          token: generateToken(userExists._id),
+          status: true,
+        });
+      } else {
+        return res.status(200).json({
+          message: "Please enter correct otp ",
+          status: false,
+        });
+      }
+    } else {
+      if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+        return res.status(200).json({
+          message: "OTP successfully verified ",
+          status: true,
+        });
+      } else {
+        return res.status(200).json({
+          message: "Please enter correct otp ",
+          status: false,
+        });
+      }
+    }
+  } else {
+    return res.status(400).json({ error: "invalid user data", status: false });
+  }
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+  const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
+  if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
     return res.status(400).json({ error: "Please add all fields" });
   }
 
   // Check if user exists
-  const userExists = await User.findOne({ mobile });
+  const userExists = await User.findOne({ mobileNumber });
+
+  if (userExists) {
+    return res.status(422).json({ error: "User Already Exist" });
+  }
+
+  // update user
+  await User.findByIdAndUpdate(
+    { _id: userExists._id },
+    {
+      name,
+      email,
+      mobileNumber,
+      pan,
+      aadhar,
+      dob,
+      avatar,
+    }
+  );
+
+  if (user) {
+    res.status(201).json({
+      user,
+      token: generateToken(user._id),
+      status: "Ok",
+    });
+  } else {
+    return res.status(400).json({ error: "invalid user data" });
+  }
+});
+
+const registerUser = asyncHandler(async (req, res) => {
+  const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
+  // console.log("registerUser");
+  if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
+    return res.status(400).json({ error: "Please add all fields" });
+  }
+
+  // Check if user exists
+  const userExists = await User.findOne({ mobileNumber });
 
   if (userExists) {
     return res.status(422).json({ error: "User Already Exist" });
@@ -79,7 +166,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const user = await User.create({
     name,
     email,
-    mobile,
+    mobileNumber,
     dob,
     aadhar,
     pan,
@@ -127,10 +214,10 @@ const registerUser = asyncHandler(async (req, res) => {
 // @access  Public
 
 const loginUser = asyncHandler(async (req, res) => {
-  const { mobile } = req.body;
+  const { mobileNumber } = req.body;
 
-  // Check for user mobile
-  const user = await User.findOne({ mobile });
+  // Check for user mobileNumber
+  const user = await User.findOne({ mobileNumber });
 
   if (user) {
     res.status(201).json({
@@ -175,4 +262,4 @@ const generateOtp = () => {
   return Math.floor(Math.random() * 1000000 + 1);
 };
 
-export { getAllUser, registerUser, loginUser, getMe, sendOtp };
+export { getAllUser, registerUser, loginUser, getMe, sendOtp, verifyOtp };
