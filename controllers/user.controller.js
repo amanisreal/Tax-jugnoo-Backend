@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../MongoDB/models/user.js";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
 
 // @desc    Register new user
 // @route   POST /user/create
@@ -35,6 +36,31 @@ const registerUser = asyncHandler(async (req, res) => {
     avatar,
   });
 
+  //send email for sign up user
+  const transporter = nodemailer.createTransport({
+    // Configure this with your email service provider details
+    service: "gmail",
+    auth: {
+      user: "taxjugnoo@gmail.com",
+      pass: "Taxjugnoo@1234",
+    },
+  });
+
+  const mailOptions = {
+    from: "taxjugnoo@gmail.com",
+    to: email,
+    subject: "Welcome to Tax jugnoo",
+    text: "Thank you for signing up!",
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  });
+  // user auth token generate
   if (user) {
     res.status(201).json({
       user,
