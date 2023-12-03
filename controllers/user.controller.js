@@ -16,7 +16,7 @@ const sendOtp = asyncHandler(async (req, res) => {
   // Check if user exists
   const userExists = await User.findOne({ mobileNumber });
 
-  if (userExists.email) {
+  if (userExists?.email) {
     // send otp in both email and mobileNumber number
     const myOtp = generateOtp();
 
