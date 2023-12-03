@@ -10,7 +10,9 @@ import nodemailer from "nodemailer";
 const sendOtp = asyncHandler(async (req, res) => {
   const { mobileNumber } = req.body;
   if (!mobileNumber) {
-    return res.status(400).json({ error: "Please add all fields" });
+    return res
+      .status(400)
+      .json({ error: "Please add all fields", status: false });
   }
 
   // Check if user exists
@@ -61,9 +63,10 @@ const sendOtp = asyncHandler(async (req, res) => {
 const verifyOtp = asyncHandler(async (req, res) => {
   const { mobileNumber, otp } = req.body;
   if (!mobileNumber || !otp) {
-    return res
-      .status(400)
-      .json({ error: "Contact number and otp is required fields" });
+    return res.status(400).json({
+      error: "Contact number and otp is required fields",
+      status: false,
+    });
   }
 
   // Check if user exists
@@ -126,13 +129,15 @@ const verifyOtp = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
   const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
   if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
-    return res.status(400).json({ error: "Please add all fields" });
+    return res
+      .status(400)
+      .json({ error: "Please add all fields", status: false });
   }
 
   // get user details by mobile number
   const getUser = await User.findOne({ mobileNumber });
 
-  if (getUser) {
+  if (getUser.isMobileNumberVerified) {
     await User.findByIdAndUpdate(
       { _id: getUser._id },
       {
@@ -150,7 +155,7 @@ const updateUser = asyncHandler(async (req, res) => {
     return res.status(201).json({
       data: updatedUser,
       token: generateToken(updatedUser._id),
-      status: "Ok",
+      status: true,
     });
   } else {
     return res.status(400).json({ error: "invalid user data" });
