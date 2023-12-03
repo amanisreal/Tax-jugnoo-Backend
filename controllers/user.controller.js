@@ -1,7 +1,7 @@
 import asyncHandler from "express-async-handler";
 import User from "../MongoDB/models/user.js";
 import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import { sendEmail } from "../helper/email.js";
 
 // @desc    Register new user
 // @route   POST /user/create
@@ -29,11 +29,24 @@ const sendOtp = asyncHandler(async (req, res) => {
       }
     );
 
-    console.log("OTP saved in db", myOtp);
+    //send email for sign up user
 
-    console.log(
-      "Otp sent to  " + userExists.email + "and " + userExists.mobileNumber
-    );
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: userExists?.email,
+      subject: "Your Tax Jugnoo OTP",
+      text: `Hi Tax jugnoo User,
+
+      Here's your OTP for Tax Jugnoo: ${myOtp}.
+      
+      Keep it safe! If you need help, reach out to us.
+      
+      Best,
+      Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+
     return res.status(200).json({
       message: "OTP successfully sent to your email and contact number",
       status: true,
@@ -90,6 +103,24 @@ const verifyOtp = asyncHandler(async (req, res) => {
           }
         );
 
+        //send email for OTP verified
+
+        const mailOptions = {
+          from: "taxjugnoo@gmail.com",
+          to: userExists?.email,
+          subject: "OTP Verified Successfully",
+          text: `Hi Tax jugnoo User,
+
+      Your OTP has been Verified Successfully .
+      
+      Keep it safe! If you need help, reach out to us.
+      
+      Best,
+      Team Tax Jugnoo`,
+        };
+
+        sendEmail(mailOptions);
+
         return res.status(200).json({
           message: "OTP successfully verified ",
           token: generateToken(userExists._id),
@@ -109,6 +140,25 @@ const verifyOtp = asyncHandler(async (req, res) => {
             isMobileNumberVerified: true,
           }
         );
+
+        //send email for OTP verified
+
+        const mailOptions = {
+          from: "taxjugnoo@gmail.com",
+          to: userExists?.email,
+          subject: "OTP Verified Successfully",
+          text: `Hi Tax jugnoo User,
+
+    Your OTP has been Verified Successfully .
+    
+    Keep it safe! If you need help, reach out to us.
+    
+    Best,
+    Team Tax Jugnoo`,
+        };
+
+        sendEmail(mailOptions);
+
         return res.status(200).json({
           message: "OTP successfully verified ",
           status: true,
@@ -151,6 +201,24 @@ const updateUser = asyncHandler(async (req, res) => {
         isMobileNumberVerified: true,
       }
     );
+
+    //send email for User Updated
+
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: userExists?.email,
+      subject: "User Details Updated Successfully",
+      text: `Hi ${name},
+
+    Your Details has been Verified Successfully .
+    
+    Keep it safe! If you need help, reach out to us.
+    
+    Best,
+    Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
     const updatedUser = await User.findOne({ mobileNumber });
     return res.status(201).json({
       data: updatedUser,
@@ -186,30 +254,6 @@ const registerUser = asyncHandler(async (req, res) => {
     avatar,
   });
 
-  //send email for sign up user
-  const transporter = nodemailer.createTransport({
-    // Configure this with your email service provider details
-    service: "gmail",
-    auth: {
-      user: "taxjugnoo@gmail.com",
-      pass: "Taxjugnoo@1234",
-    },
-  });
-
-  const mailOptions = {
-    from: "taxjugnoo@gmail.com",
-    to: email,
-    subject: "Welcome to Tax jugnoo",
-    text: "Thank you for signing up!",
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Error sending email:", error);
-    } else {
-      console.log("Email sent:", info.response);
-    }
-  });
   // user auth token generate
   if (user) {
     res.status(201).json({
