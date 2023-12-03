@@ -122,6 +122,8 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
         const user = await User.findOne({ mobileNumber });
 
+        delete user.toObject().otp;
+
         return res.status(200).json({
           message: "OTP successfully verified ",
           token: generateToken(userExists._id),
@@ -184,6 +186,8 @@ const updateUser = asyncHandler(async (req, res) => {
 
     sendEmail(mailOptions);
     const updatedUser = await User.findOne({ mobileNumber });
+    delete updatedUser.toObject().otp;
+
     return res.status(201).json({
       data: updatedUser,
       token: generateToken(updatedUser._id),
@@ -254,7 +258,15 @@ const loginUser = asyncHandler(async (req, res) => {
 // @route   GET /user/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  res.status(200).json(req.user);
+  const user = req.user.toObject();
+
+  delete user?.otp;
+
+  res.status(200).json({
+    data: user,
+    status: true,
+    message: "User Fatched successfully",
+  });
 });
 
 // @desc    Get all users data
