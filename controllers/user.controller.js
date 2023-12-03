@@ -90,11 +90,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   if (userExists) {
     console.log("db otp", userExists.otp, "user otp", otp);
 
-    if (userExists?.email) {
-      console.log(
-        "verify",
-        userExists.otp === Number(otp) || 222222 === Number(otp)
-      );
+    if (userExists) {
       if (userExists.otp === Number(otp) || 222222 === Number(otp)) {
         await User.findByIdAndUpdate(
           { _id: userExists._id },
@@ -105,64 +101,32 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
         //send email for OTP verified
 
-        const mailOptions = {
-          from: "taxjugnoo@gmail.com",
-          to: userExists?.email,
-          subject: "OTP Verified Successfully",
-          text: `Hi Tax jugnoo User,
+        if (userExists?.email) {
+          const mailOptions = {
+            from: "taxjugnoo@gmail.com",
+            to: userExists?.email,
+            subject: "OTP Verified Successfully",
+            text: `Hi ${
+              userExists?.name ? userExists?.name : " Tax jugnoo User"
+            },
 
-      Your OTP has been Verified Successfully .
-      
-      Keep it safe! If you need help, reach out to us.
-      
-      Best,
-      Team Tax Jugnoo`,
-        };
+                   Your OTP has been Verified Successfully .
 
-        sendEmail(mailOptions);
+                   Keep it safe! If you need help, reach out to us.
+
+                   Best,
+                   Team Tax Jugnoo`,
+          };
+          sendEmail(mailOptions);
+        }
+
+        const user = await User.findOne({ mobileNumber });
 
         return res.status(200).json({
           message: "OTP successfully verified ",
           token: generateToken(userExists._id),
+          data: user,
           status: true,
-        });
-      } else {
-        return res.status(200).json({
-          message: "Please enter correct otp ",
-          status: false,
-        });
-      }
-    } else {
-      if (userExists.otp === Number(otp) || 222222 === Number(otp)) {
-        await User.findByIdAndUpdate(
-          { _id: userExists._id },
-          {
-            isMobileNumberVerified: true,
-          }
-        );
-
-        //send email for OTP verified
-
-        const mailOptions = {
-          from: "taxjugnoo@gmail.com",
-          to: userExists?.email,
-          subject: "OTP Verified Successfully",
-          text: `Hi Tax jugnoo User,
-
-    Your OTP has been Verified Successfully .
-    
-    Keep it safe! If you need help, reach out to us.
-    
-    Best,
-    Team Tax Jugnoo`,
-        };
-
-        sendEmail(mailOptions);
-
-        return res.status(200).json({
-          message: "OTP successfully verified ",
-          status: true,
-          token: null,
         });
       } else {
         return res.status(200).json({
