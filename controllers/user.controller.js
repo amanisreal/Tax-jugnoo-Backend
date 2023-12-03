@@ -120,9 +120,10 @@ const verifyOtp = asyncHandler(async (req, res) => {
           sendEmail(mailOptions);
         }
 
-        const user = await User.findOne({ mobileNumber });
+        const getUser = await User.findOne({ mobileNumber });
 
-        delete user.toObject().otp;
+        const user = getUser.toObject();
+        delete user.otp;
 
         return res.status(200).json({
           message: "OTP successfully verified ",
@@ -172,7 +173,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
-      to: userExists?.email,
+      to: email,
       subject: "User Details Updated Successfully",
       text: `Hi ${name},
 
@@ -186,11 +187,13 @@ const updateUser = asyncHandler(async (req, res) => {
 
     sendEmail(mailOptions);
     const updatedUser = await User.findOne({ mobileNumber });
-    delete updatedUser.toObject().otp;
+
+    const user = updatedUser.toObject();
+    delete user.otp;
 
     return res.status(201).json({
-      data: updatedUser,
-      token: generateToken(updatedUser._id),
+      data: user,
+      token: generateToken(user._id),
       status: true,
     });
   } else {
