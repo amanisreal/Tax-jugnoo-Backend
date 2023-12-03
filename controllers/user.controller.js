@@ -74,7 +74,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
   if (userExists) {
     console.log("db otp", userExists.otp, "user otp", otp);
 
-    if (userExists.email) {
+    if (userExists?.email) {
       console.log(
         "verify",
         userExists.otp === Number(otp) || 222222 === Number(otp)
