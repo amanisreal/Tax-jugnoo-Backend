@@ -10,6 +10,8 @@ const UserSchema = new mongoose.Schema(
     pan: { type: String, default: "" },
     avatar: { type: String, default: "" },
     otp: { type: Number, default: "" },
+    isMobileNumberVerified: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

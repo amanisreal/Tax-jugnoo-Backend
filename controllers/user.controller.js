@@ -16,7 +16,7 @@ const sendOtp = asyncHandler(async (req, res) => {
   // Check if user exists
   const userExists = await User.findOne({ mobileNumber });
 
-  if (userExists) {
+  if (userExists.email) {
     // send otp in both email and mobileNumber number
     const myOtp = generateOtp();
 
@@ -44,6 +44,8 @@ const sendOtp = asyncHandler(async (req, res) => {
     const user = await User.create({
       otp: myOtp,
       mobileNumber,
+      isEmailVerified: false,
+      isMobileNumberVerified: false,
     });
 
     console.log("OTP saved in db", myOtp);
@@ -70,12 +72,21 @@ const verifyOtp = asyncHandler(async (req, res) => {
   console.log("user fatch", userExists);
 
   if (userExists) {
+    console.log("db otp", userExists.otp, "user otp", otp);
+
     if (userExists.email) {
       console.log(
         "verify",
         userExists.otp === Number(otp) || userExists.otp === 222222
       );
       if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+        await User.findByIdAndUpdate(
+          { _id: userExists._id },
+          {
+            isMobileNumberVerified: true,
+          }
+        );
+
         return res.status(200).json({
           message: "OTP successfully verified ",
           token: generateToken(userExists._id),
@@ -89,9 +100,16 @@ const verifyOtp = asyncHandler(async (req, res) => {
       }
     } else {
       if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+        await User.findByIdAndUpdate(
+          { _id: userExists._id },
+          {
+            isMobileNumberVerified: true,
+          }
+        );
         return res.status(200).json({
           message: "OTP successfully verified ",
           status: true,
+          token: null,
         });
       } else {
         return res.status(200).json({
