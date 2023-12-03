@@ -129,31 +129,27 @@ const updateUser = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Please add all fields" });
   }
 
-  // Check if user exists
-  const userExists = await User.findOne({ mobileNumber });
+  // get user details by mobile number
+  const getUser = await User.findOne({ mobileNumber });
 
-  if (userExists) {
-    return res.status(422).json({ error: "User Already Exist" });
-  }
-
-  // update user
-  await User.findByIdAndUpdate(
-    { _id: userExists._id },
-    {
-      name,
-      email,
-      mobileNumber,
-      pan,
-      aadhar,
-      dob,
-      avatar,
-    }
-  );
-
-  if (user) {
-    res.status(201).json({
-      user,
-      token: generateToken(user._id),
+  if (getUser) {
+    await User.findByIdAndUpdate(
+      { _id: getUser._id },
+      {
+        name,
+        email,
+        mobileNumber,
+        pan,
+        aadhar,
+        dob,
+        avatar,
+        isMobileNumberVerified: true,
+      }
+    );
+    const updatedUser = await User.findOne({ mobileNumber });
+    return res.status(201).json({
+      data: updatedUser,
+      token: generateToken(updatedUser._id),
       status: "Ok",
     });
   } else {
@@ -174,12 +170,6 @@ const registerUser = asyncHandler(async (req, res) => {
   if (userExists) {
     return res.status(422).json({ error: "User Already Exist" });
   }
-
-  // Hash password
-  // const salt = await bcrypt.genSalt(10)
-  // const hashedPassword = await bcrypt.hash(password, salt)
-
-  // Create user
 
   const user = await User.create({
     name,
@@ -280,4 +270,12 @@ const generateOtp = () => {
   return Math.floor(Math.random() * 1000000 + 1);
 };
 
-export { getAllUser, registerUser, loginUser, getMe, sendOtp, verifyOtp };
+export {
+  getAllUser,
+  registerUser,
+  loginUser,
+  getMe,
+  sendOtp,
+  verifyOtp,
+  updateUser,
+};
