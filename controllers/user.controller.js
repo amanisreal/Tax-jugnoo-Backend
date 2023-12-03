@@ -137,7 +137,7 @@ const updateUser = asyncHandler(async (req, res) => {
   // get user details by mobile number
   const getUser = await User.findOne({ mobileNumber });
 
-  if (getUser.isMobileNumberVerified) {
+  if (getUser?.isMobileNumberVerified) {
     await User.findByIdAndUpdate(
       { _id: getUser._id },
       {
