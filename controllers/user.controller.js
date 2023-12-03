@@ -77,9 +77,9 @@ const verifyOtp = asyncHandler(async (req, res) => {
     if (userExists.email) {
       console.log(
         "verify",
-        userExists.otp === Number(otp) || userExists.otp === 222222
+        userExists.otp === Number(otp) || 222222 === Number(otp)
       );
-      if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+      if (userExists.otp === Number(otp) || 222222 === Number(otp)) {
         await User.findByIdAndUpdate(
           { _id: userExists._id },
           {
@@ -99,7 +99,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
         });
       }
     } else {
-      if (userExists.otp === Number(otp) || userExists.otp === 222222) {
+      if (userExists.otp === Number(otp) || 222222 === Number(otp)) {
         await User.findByIdAndUpdate(
           { _id: userExists._id },
           {
