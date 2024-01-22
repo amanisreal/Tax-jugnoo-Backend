@@ -47,11 +47,34 @@ const createCategoryPlan = asyncHandler(async (req, res) => {
 // @route   GET /category/all
 // @access  Public
 
+// const getAllCategoryPlans = asyncHandler(async (req, res) => {
+//   const categoryPlans = await CategoryPlan.find({});
+//   return res.status(200).json({
+//     data: categoryPlans,
+//     count: categoryPlans?.length,
+//     status: true,
+//     message: "All Category Plans retrieved successfully",
+//   });
+// });
 const getAllCategoryPlans = asyncHandler(async (req, res) => {
-  const categoryPlans = await CategoryPlan.find({});
+  const { searchQuery } = req.query;
+
+  // Build a search query if provided
+  const query = {};
+  if (searchQuery) {
+    query.$or = [
+      { categoryName: { $regex: searchQuery, $options: "i" } },
+      { hoverLine: { $regex: searchQuery, $options: "i" } },
+      { pageHeadline: { $regex: searchQuery, $options: "i" } },
+      { pageParagraph: { $regex: searchQuery, $options: "i" } },
+      { serviceTemplate: { $regex: searchQuery, $options: "i" } },
+    ];
+  }
+
+  const categoryPlans = await CategoryPlan.find(query);
+
   return res.status(200).json({
     data: categoryPlans,
-    count: categoryPlans?.length,
     status: true,
     message: "All Category Plans retrieved successfully",
   });
