@@ -2,7 +2,7 @@ import asyncHandler from "express-async-handler";
 import CategoryPlan from "../MongoDB/models/categoryPlan.js";
 
 // @desc    Create a new categoryPlan
-// @route   POST /categoryPlan/create
+// @route   POST /category/add
 // @access  Public
 const createCategoryPlan = asyncHandler(async (req, res) => {
   const {
@@ -43,7 +43,9 @@ const createCategoryPlan = asyncHandler(async (req, res) => {
   });
 });
 
-// Other controller functions...
+// @desc    Get all category plans
+// @route   GET /category/all
+// @access  Public
 
 const getAllCategoryPlans = asyncHandler(async (req, res) => {
   const categoryPlans = await CategoryPlan.find({});
@@ -55,8 +57,64 @@ const getAllCategoryPlans = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Update a category plan by ID
+// @route   PUT /category/update/:id
+// @access  Public
+const updateCategoryPlan = asyncHandler(async (req, res) => {
+  const categoryId = req.params.id;
+  const {
+    categoryName,
+    hoverLine,
+    pageHeadline,
+    pageParagraph,
+    serviceTemplate,
+    active,
+  } = req.body;
+
+  if (
+    !categoryName ||
+    !hoverLine ||
+    !pageHeadline ||
+    !pageParagraph ||
+    !serviceTemplate ||
+    active === undefined
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Please provide all required fields", status: false });
+  }
+
+  const updatedCategoryPlan = await CategoryPlan.findByIdAndUpdate(
+    categoryId,
+    {
+      categoryName,
+      hoverLine,
+      pageHeadline,
+      pageParagraph,
+      serviceTemplate,
+      active,
+    },
+    { new: true }
+  );
+
+  if (!updatedCategoryPlan) {
+    return res.status(404).json({
+      error: "Category Plan not found",
+      status: false,
+    });
+  }
+
+  return res.status(200).json({
+    data: updatedCategoryPlan,
+    status: true,
+    message: "Category Plan updated successfully",
+  });
+});
+
 export {
   createCategoryPlan,
   getAllCategoryPlans,
+  updateCategoryPlan,
+
   // Add other controller functions here...
 };
