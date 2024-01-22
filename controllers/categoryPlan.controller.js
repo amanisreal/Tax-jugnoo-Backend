@@ -45,7 +45,17 @@ const createCategoryPlan = asyncHandler(async (req, res) => {
 
 // Other controller functions...
 
+const getAllCategoryPlans = asyncHandler(async (req, res) => {
+  const categoryPlans = await CategoryPlan.find({});
+  return res.status(200).json({
+    data: categoryPlans,
+    status: true,
+    message: "All Category Plans retrieved successfully",
+  });
+});
+
 export {
   createCategoryPlan,
+  getAllCategoryPlans,
   // Add other controller functions here...
 };
