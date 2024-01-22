@@ -49,6 +49,7 @@ const getAllCategoryPlans = asyncHandler(async (req, res) => {
   const categoryPlans = await CategoryPlan.find({});
   return res.status(200).json({
     data: categoryPlans,
+    count: categoryPlans?.length,
     status: true,
     message: "All Category Plans retrieved successfully",
   });
