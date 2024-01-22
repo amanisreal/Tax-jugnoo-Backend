@@ -7,7 +7,7 @@ const CategoryPlanSchema = new mongoose.Schema(
     pageHeadline: { type: String, default: "" },
     pageParagraph: { type: String, default: "" },
     serviceTemplate: { type: String, default: "" },
-    active: { type: Boolean, default: false },
+    active: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
