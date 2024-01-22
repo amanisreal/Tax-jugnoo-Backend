@@ -5,6 +5,8 @@ import { createCategoryPlan } from "../controllers/categoryPlan.controller.js";
 
 const router = express.Router();
 
-router.post("/add", authMiddleware.protect, createCategoryPlan);
+// router.post("/add", createCategoryPlan);
+
+router.route("/add").post(createCategoryPlan);
 
 export default router;
