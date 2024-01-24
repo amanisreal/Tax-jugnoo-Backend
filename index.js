@@ -6,6 +6,7 @@ import connectDB from "./MongoDB/connect.js";
 
 import userRoutes from "./routes/userRoutes.js";
 import categoryRoutes from "./routes/categoryPlanRoutes.js";
+import planlistRoutes from "./routes/planListRoutes.js";
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/user", userRoutes);
 app.use("/category", categoryRoutes);
+app.use("/planlist", planlistRoutes);
 
 const startServer = async () => {
   try {
