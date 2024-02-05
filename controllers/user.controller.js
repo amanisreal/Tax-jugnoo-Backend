@@ -143,8 +143,18 @@ const verifyOtp = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, dob, aadhar, pan, category, fathersName } = req.body;
-  if (!name || !email || !pan || !aadhar || !dob || !category || !fathersName) {
+  const { name, email, dob, aadhar, pan, category, fathersName, mobileNumber } =
+    req.body;
+  if (
+    !name ||
+    !email ||
+    !pan ||
+    !aadhar ||
+    !dob ||
+    !category ||
+    !fathersName ||
+    !mobileNumber
+  ) {
     return res
       .status(400)
       .json({ error: "Please add all fields", status: false });
