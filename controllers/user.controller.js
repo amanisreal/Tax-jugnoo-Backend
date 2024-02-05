@@ -143,7 +143,8 @@ const verifyOtp = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, dob, aadhar, pan, category, fathersName, mobileNumber } =
+  const user = req.user.toObject();
+  const { name, email, dob, aadhar, pan, category, fathersName } =
     req.body;
   if (
     !name ||
@@ -153,17 +154,15 @@ const updateUser = asyncHandler(async (req, res) => {
     !dob ||
     !category ||
     !fathersName ||
-    !mobileNumber
   ) {
     return res
       .status(400)
       .json({ error: "Please add all fields", status: false });
   }
-  const getUser = await User.findOne({ mobileNumber });
 
-  if (getUser?.isMobileNumberVerified) {
+  if (user?.isMobileNumberVerified) {
     await User.findByIdAndUpdate(
-      { _id: getUser._id },
+      { _id: user._id },
       {
         name,
         email,
@@ -191,9 +190,9 @@ const updateUser = asyncHandler(async (req, res) => {
     };
 
     sendEmail(mailOptions);
-    const updatedUser = await User.findOne({ mobileNumber });
+    const updatedUser = await User.findOne({ mobileNumber: user.mobileNumber });
 
-    const user = updatedUser.toObject();
+    user = updatedUser.toObject();
     delete user.otp;
 
     return res.status(201).json({
@@ -239,7 +238,7 @@ const addIdUser = asyncHandler(async (req, res) => {
     };
 
     sendEmail(mailOptions);
-    const updatedUser = await User.findOne({ mobileNumber });
+    const updatedUser = await User.findOne({ mobileNumber: user.mobileNumber });
 
     user = updatedUser.toObject();
     delete user.otp;

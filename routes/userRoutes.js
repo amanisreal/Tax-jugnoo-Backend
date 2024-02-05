@@ -19,7 +19,7 @@ router.route("/create").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
-router.route("/update").put(updateUser);
+router.put("/update", authMiddleware.protect, updateUser);
 router.post("/addId", authMiddleware.protect, addIdUser);
 router.route("/").get(getAllUser);
 
