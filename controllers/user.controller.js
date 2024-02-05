@@ -30,7 +30,6 @@ const sendOtp = asyncHandler(async (req, res) => {
     );
 
     //send email for sign up user
-
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: userExists?.email,
@@ -144,14 +143,12 @@ const verifyOtp = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
-  if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
+  const { name, email, dob, aadhar, pan, category, fathersName } = req.body;
+  if (!name || !email || !pan || !aadhar || !dob || category || fathersName) {
     return res
       .status(400)
       .json({ error: "Please add all fields", status: false });
   }
-
-  // get user details by mobile number
   const getUser = await User.findOne({ mobileNumber });
 
   if (getUser?.isMobileNumberVerified) {
@@ -160,17 +157,15 @@ const updateUser = asyncHandler(async (req, res) => {
       {
         name,
         email,
-        mobileNumber,
         pan,
         aadhar,
         dob,
-        avatar,
-        isMobileNumberVerified: true,
+        category,
+        fathersName,
       }
     );
 
     //send email for User Updated
-
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: email,
@@ -203,12 +198,10 @@ const updateUser = asyncHandler(async (req, res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
-  // console.log("registerUser");
   if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
     return res.status(400).json({ error: "Please add all fields" });
   }
 
-  // Check if user exists
   const userExists = await User.findOne({ mobileNumber });
 
   if (userExists) {
