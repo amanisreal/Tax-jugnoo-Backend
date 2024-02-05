@@ -143,7 +143,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
-  const user = req.user.toObject();
+  let user = req.user.toObject();
   const { name, email, dob, aadhar, pan, category, fathersName } = req.body;
   if (!name || !email || !pan || !aadhar || !dob || !category || !fathersName) {
     return res
@@ -197,7 +197,7 @@ const updateUser = asyncHandler(async (req, res) => {
 });
 
 const addIdUser = asyncHandler(async (req, res) => {
-  const user = req.user.toObject();
+  let user = req.user.toObject();
   const { name, information } = req.body;
   if (!name || !information) {
     return res
