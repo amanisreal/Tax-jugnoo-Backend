@@ -207,13 +207,13 @@ const updateUser = asyncHandler(async (req, res) => {
 });
 
 const addIdUser = asyncHandler(async (req, res) => {
+  const user = req.user.toObject();
   const { name, information } = req.body;
   if (!name || !information) {
     return res
       .status(400)
       .json({ error: "Please add all fields", status: false });
   }
-  const user = await User.findOne({ mobileNumber });
 
   if (user?.isMobileNumberVerified) {
     await User.findByIdAndUpdate(
@@ -313,7 +313,6 @@ const loginUser = asyncHandler(async (req, res) => {
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
   const user = req.user.toObject();
-
   delete user?.otp;
 
   res.status(200).json({

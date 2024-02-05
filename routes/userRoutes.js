@@ -20,7 +20,7 @@ router.route("/login").post(loginUser);
 router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
 router.route("/update").put(updateUser);
-router.route("/addId").put(addIdUser);
+router.post("/addId", authMiddleware.protect, addIdUser);
 router.route("/").get(getAllUser);
 
 export default router;
