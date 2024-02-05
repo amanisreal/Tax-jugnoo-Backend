@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const idSchema = new mongoose.Schema({
   name: String,
-  information: String,
+  information: { type: String, required: true, unique: true },
 });
 
 const businessInformationSchema = new mongoose.Schema({
@@ -37,7 +37,7 @@ const memberSchema = new mongoose.Schema({
 const UserSchema = new mongoose.Schema(
   {
     name: { type: String, default: "" },
-    mobileNumber: { type: Number, required: true, default: "" },
+    mobileNumber: { type: Number, required: true, unique: true },
     email: { type: String, default: "" },
     dob: { type: String, default: "" },
     aadhar: { type: Number },
