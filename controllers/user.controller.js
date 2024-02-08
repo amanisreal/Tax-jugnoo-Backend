@@ -274,7 +274,8 @@ const addIdUser = asyncHandler(async (req, res) => {
 const editIdUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { name, information, id } = req.body;
+    const { name, information } = req.body;
+    const { id } = req.params;
 
     if (!name || !information || !id) {
       return res

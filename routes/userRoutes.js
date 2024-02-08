@@ -10,6 +10,7 @@ import {
   verifyOtp,
   updateUser,
   addIdUser,
+  editIdUser,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -21,7 +22,7 @@ router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
 router.put("/update", authMiddleware.protect, updateUser);
 router.post("/addId", authMiddleware.protect, addIdUser);
-router.put("/editId", authMiddleware.protect, addIdUser);
+router.put("/editId/:id", authMiddleware.protect, editIdUser);
 router.route("/").get(getAllUser);
 
 export default router;
