@@ -340,6 +340,64 @@ Team Tax Jugnoo`,
   }
 });
 
+const addBussiness = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { name, information } = req.body;
+
+    if (!name || !information) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields", status: false });
+    }
+
+    if (user?.isMobileNumberVerified) {
+      await User.findByIdAndUpdate(
+        { _id: user._id },
+        {
+          ids: [...user.ids, { name, information }],
+        }
+      );
+
+      //send email for User Updated
+      const mailOptions = {
+        from: "taxjugnoo@gmail.com",
+        to: user.email,
+        subject: "User Details Updated Successfully",
+        text: `Hi ${user.name},
+
+  Your Details has been Verified Successfully .
+  
+  Keep it safe! If you need help, reach out to us.
+  
+  Best,
+  Team Tax Jugnoo`,
+      };
+
+      sendEmail(mailOptions);
+      const updatedUser = await User.findOne({
+        mobileNumber: user.mobileNumber,
+      });
+
+      user = updatedUser.toObject();
+      delete user.otp;
+
+      return res.status(201).json({
+        data: user,
+        token: generateToken(user._id),
+        status: true,
+      });
+    } else {
+      return res.status(400).json({ error: "invalid user data" });
+    }
+  } catch (error) {
+    console.error("Error in addIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
   if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
@@ -444,4 +502,5 @@ export {
   updateUser,
   addIdUser,
   editIdUser,
+  addBussiness,
 };
