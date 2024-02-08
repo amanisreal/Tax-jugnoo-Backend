@@ -271,6 +271,74 @@ const addIdUser = asyncHandler(async (req, res) => {
   }
 });
 
+const editIdUser = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { name, information, id } = req.body;
+
+    if (!name || !information || !id) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields including 'id'", status: false });
+    }
+
+    if (user?.isMobileNumberVerified) {
+      // Find the index of the ID to be edited
+      const idIndex = user.ids.findIndex((item) => item._id == id);
+
+      if (idIndex === -1) {
+        return res.status(400).json({ error: "ID not found", status: false });
+      }
+
+      // Update the specific ID in the array
+      user.ids[idIndex] = { _id: id, name, information };
+
+      await User.findByIdAndUpdate(
+        { _id: user._id },
+        {
+          ids: user.ids,
+        }
+      );
+
+      // Send email for User Updated
+      const mailOptions = {
+        from: "taxjugnoo@gmail.com",
+        to: user.email,
+        subject: "User Details Updated Successfully",
+        text: `Hi ${user.name},
+
+Your Details has been Verified Successfully.
+Keep it safe! If you need help, reach out to us.
+
+Best,
+Team Tax Jugnoo`,
+      };
+
+      sendEmail(mailOptions);
+
+      const updatedUser = await User.findOne({
+        mobileNumber: user.mobileNumber,
+      });
+
+      user = updatedUser.toObject();
+      delete user.otp;
+
+      return res.status(201).json({
+        data: user,
+        token: generateToken(user._id),
+        status: true,
+      });
+    } else {
+      return res.status(400).json({ error: "Invalid user data" });
+    }
+  } catch (error) {
+    console.error("Error in editIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
   if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
@@ -374,4 +442,5 @@ export {
   verifyOtp,
   updateUser,
   addIdUser,
+  editIdUser,
 };

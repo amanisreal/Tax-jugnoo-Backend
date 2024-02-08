@@ -21,6 +21,7 @@ router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
 router.put("/update", authMiddleware.protect, updateUser);
 router.post("/addId", authMiddleware.protect, addIdUser);
+router.put("/editId", authMiddleware.protect, addIdUser);
 router.route("/").get(getAllUser);
 
 export default router;
