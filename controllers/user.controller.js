@@ -399,8 +399,8 @@ const addBussiness = asyncHandler(async (req, res) => {
 });
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, mobileNumber, pan, aadhar, dob, avatar } = req.body;
-  if (!name || !email || !mobileNumber || !pan || !aadhar || !dob) {
+  const { name, email, mobileNumber } = req.body;
+  if (!name || !email || !mobileNumber) {
     return res.status(400).json({ error: "Please add all fields" });
   }
 
@@ -414,10 +414,6 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     mobileNumber,
-    dob,
-    aadhar,
-    pan,
-    avatar,
   });
 
   // user auth token generate

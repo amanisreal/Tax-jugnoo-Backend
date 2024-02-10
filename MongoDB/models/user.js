@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const idSchema = new mongoose.Schema({
   name: String,
-  information: { type: String, required: true, unique: true },
+  information: { type: String, unique: true },
 });
 
 const businessInformationSchema = new mongoose.Schema({

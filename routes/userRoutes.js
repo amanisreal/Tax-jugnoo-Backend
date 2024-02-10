@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
 
 import {
-  getAllUser,
+  // getAllUser,
   registerUser,
   loginUser,
   getMe,
