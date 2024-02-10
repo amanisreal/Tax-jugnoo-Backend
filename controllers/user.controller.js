@@ -146,15 +146,7 @@ const updateUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { name, email, dob, aadhar, pan, category, fathersName } = req.body;
-    if (
-      !name ||
-      !email ||
-      !pan ||
-      !aadhar ||
-      !dob ||
-      !category ||
-      !fathersName
-    ) {
+    if (!name || !email) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
