@@ -391,13 +391,13 @@ const addBussiness = asyncHandler(async (req, res) => {
       .json({ error: "Internal Server Error", status: false });
   }
 });
-const addBussinessTable = asyncHandler(async (req, res) => {
+const editBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { gstNo, msme, shopEst } = req.body;
+    const { businessName, businessAddress, gstNo, msme, shopEst } = req.body;
     const { id } = req.params;
 
-    if (!gstNo || !msme || !shopEst) {
+    if (!businessName || !businessAddress || !gstNo || !msme || !shopEst) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
@@ -416,10 +416,12 @@ const addBussinessTable = asyncHandler(async (req, res) => {
 
       // Update the specific ID in the array
       user.businessInformation[idIndex] = {
-        ...user.businessInformation[idIndex],
+        businessName,
+        businessAddress,
         gstNo,
         msme,
         shopEst,
+        _id: id,
       };
 
       await User.findByIdAndUpdate(
@@ -569,5 +571,5 @@ export {
   addIdUser,
   editIdUser,
   addBussiness,
-  addBussinessTable,
+  editBussiness,
 };

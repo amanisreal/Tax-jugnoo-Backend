@@ -12,7 +12,7 @@ import {
   addIdUser,
   editIdUser,
   addBussiness,
-  addBussinessTable,
+  editBussiness,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -28,7 +28,7 @@ router.put("/update", authMiddleware.protect, updateUser);
 router.post("/addId", authMiddleware.protect, addIdUser);
 router.put("/editId/:id", authMiddleware.protect, editIdUser);
 router.post("/addBussiness", authMiddleware.protect, addBussiness);
-router.post("/editBussiness/:id", authMiddleware.protect, addBussinessTable);
+router.put("/editBussiness/:id", authMiddleware.protect, editBussiness);
 // router.route("/").get(getAllUser);
 
 export default router;
