@@ -334,9 +334,9 @@ Team Tax Jugnoo`,
 const addBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { name, information } = req.body;
+    const { businessName, businessAddress } = req.body;
 
-    if (!name || !information) {
+    if (!businessName || !businessAddress) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
@@ -346,7 +346,10 @@ const addBussiness = asyncHandler(async (req, res) => {
       await User.findByIdAndUpdate(
         { _id: user._id },
         {
-          ids: [...user.ids, { name, information }],
+          businessInformation: [
+            ...user.businessInformation,
+            { businessName, businessAddress },
+          ],
         }
       );
 
@@ -354,11 +357,87 @@ const addBussiness = asyncHandler(async (req, res) => {
       const mailOptions = {
         from: "taxjugnoo@gmail.com",
         to: user.email,
-        subject: "User Details Updated Successfully",
+        subject: "Bussiness Details Added Successfully",
         text: `Hi ${user.name},
 
-  Your Details has been Verified Successfully .
+  Bussiness Details has been added Successfully .
+
+  Keep it safe! If you need help, reach out to us.
   
+  Best,
+  Team Tax Jugnoo`,
+      };
+
+      sendEmail(mailOptions);
+      const updatedUser = await User.findOne({
+        mobileNumber: user.mobileNumber,
+      });
+
+      user = updatedUser.toObject();
+      delete user.otp;
+
+      return res.status(201).json({
+        data: user,
+        token: generateToken(user._id),
+        status: true,
+      });
+    } else {
+      return res.status(400).json({ error: "invalid user data" });
+    }
+  } catch (error) {
+    console.error("Error in addIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+const addBussinessTable = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { gstNo, msme, shopEst } = req.body;
+    const { id } = req.params;
+
+    if (!gstNo || !msme || !shopEst) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields", status: false });
+    }
+
+    if (user?.isMobileNumberVerified) {
+      const idIndex = user.businessInformation.findIndex(
+        (item) => item._id == id
+      );
+
+      if (idIndex === -1) {
+        return res
+          .status(400)
+          .json({ error: "Bussiness not found", status: false });
+      }
+
+      // Update the specific ID in the array
+      user.businessInformation[idIndex] = {
+        ...user.businessInformation[idIndex],
+        gstNo,
+        msme,
+        shopEst,
+      };
+
+      await User.findByIdAndUpdate(
+        { _id: user._id },
+        {
+          businessInformation: user.businessInformation,
+        }
+      );
+
+      //send email for User Updated
+      const mailOptions = {
+        from: "taxjugnoo@gmail.com",
+        to: user.email,
+        subject: "Bussiness Details Added Successfully",
+        text: `Hi ${user.name},
+
+  Bussiness Details has been added Successfully .
+
   Keep it safe! If you need help, reach out to us.
   
   Best,
@@ -490,4 +569,5 @@ export {
   addIdUser,
   editIdUser,
   addBussiness,
+  addBussinessTable,
 };
