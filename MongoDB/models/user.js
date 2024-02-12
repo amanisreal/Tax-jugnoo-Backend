@@ -13,6 +13,13 @@ const businessInformationSchema = new mongoose.Schema({
   shopEst: String,
 });
 
+const bankSchema = new mongoose.Schema({
+  bankName: String,
+  accountNumber: String,
+  accountType: String,
+  IFSC: String,
+});
+
 const memberSchema = new mongoose.Schema({
   photo: String,
   firstName: String,
@@ -51,10 +58,7 @@ const UserSchema = new mongoose.Schema(
     ids: [idSchema],
     businessInformation: [businessInformationSchema],
     otherInformation: {
-      bankName: String,
-      accountNumber: String,
-      accountType: String,
-      IFSC: String,
+      bank: [bankSchema],
       director: [memberSchema],
       shareholder: [memberSchema],
       partnerLLP: [memberSchema],

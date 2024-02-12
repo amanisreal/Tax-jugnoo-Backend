@@ -391,6 +391,7 @@ const addBussiness = asyncHandler(async (req, res) => {
       .json({ error: "Internal Server Error", status: false });
   }
 });
+
 const editBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
@@ -439,6 +440,216 @@ const editBussiness = asyncHandler(async (req, res) => {
         text: `Hi ${user.name},
 
   Bussiness Details has been added Successfully .
+
+  Keep it safe! If you need help, reach out to us.
+  
+  Best,
+  Team Tax Jugnoo`,
+      };
+
+      sendEmail(mailOptions);
+      const updatedUser = await User.findOne({
+        mobileNumber: user.mobileNumber,
+      });
+
+      user = updatedUser.toObject();
+      delete user.otp;
+
+      return res.status(201).json({
+        data: user,
+        token: generateToken(user._id),
+        status: true,
+      });
+    } else {
+      return res.status(400).json({ error: "invalid user data" });
+    }
+  } catch (error) {
+    console.error("Error in addIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
+// other profile api
+const addOtherInfoTable = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const {
+      photo,
+      firstName,
+      lastName,
+      fathersName,
+      mobile,
+      email,
+      PAN,
+      aadhar,
+      passportNo,
+      DIN,
+      directorType,
+      dateOfJoining,
+      dateOfRetirement,
+      noOfShare,
+      faceValueOfShare,
+      DPIN,
+      IsDesignatedPartner,
+      profitOrLossShare,
+      tableName,
+    } = req.body;
+
+    if (tableName) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields", status: false });
+    }
+
+    if (user?.isMobileNumberVerified) {
+      if (tableName === "bank") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              bank: [
+                ...bank,
+                {
+                  bankName,
+                  accountNumber,
+                  accountType,
+                  IFSC,
+                },
+              ],
+            },
+          }
+        );
+      }
+      if (tableName === "director") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              director: [
+                ...director,
+                {
+                  photo,
+                  firstName,
+                  lastName,
+                  fathersName,
+                  mobile,
+                  email,
+                  PAN,
+                  aadhar,
+                  passportNo,
+                  DIN,
+                  directorType,
+                  dateOfJoining,
+                  dateOfRetirement,
+                },
+              ],
+            },
+          }
+        );
+      }
+      if (tableName === "shareholder") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              shareholder: [
+                ...shareholder,
+                {
+                  photo,
+                  firstName,
+                  lastName,
+                  fathersName,
+                  mobile,
+                  email,
+                  PAN,
+                  noOfShare,
+                  faceValueOfShare,
+                },
+              ],
+            },
+          }
+        );
+      }
+      if (tableName === "partnerLLP") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              partnerLLP: [
+                ...partnerLLP,
+                {
+                  photo,
+                  firstName,
+                  lastName,
+                  fathersName,
+                  mobile,
+                  email,
+                  PAN,
+                  dateOfJoining,
+                  DPIN,
+                  IsDesignatedPartner,
+                  profitOrLossShare,
+                },
+              ],
+            },
+          }
+        );
+      }
+      if (tableName === "partnerFirm") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              partnerFirm: [
+                ...partnerFirm,
+                {
+                  photo,
+                  firstName,
+                  lastName,
+                  fathersName,
+                  mobile,
+                  email,
+                  PAN,
+                  dateOfJoining,
+                  profitOrLossShare,
+                },
+              ],
+            },
+          }
+        );
+      }
+      if (tableName === "member") {
+        await User.findByIdAndUpdate(
+          { _id: user._id },
+          {
+            otherInformation: {
+              member: [
+                ...member,
+                {
+                  photo,
+                  firstName,
+                  lastName,
+                  fathersName,
+                  mobile,
+                  email,
+                  PAN,
+                },
+              ],
+            },
+          }
+        );
+      }
+
+      //send email for User Updated
+      const mailOptions = {
+        from: "taxjugnoo@gmail.com",
+        to: user.email,
+        subject: "Other Information Added Successfully",
+        text: `Hi ${user.name},
+
+  Other Information has been added Successfully .
 
   Keep it safe! If you need help, reach out to us.
   
@@ -572,4 +783,5 @@ export {
   editIdUser,
   addBussiness,
   editBussiness,
+  addOtherInfoTable,
 };
