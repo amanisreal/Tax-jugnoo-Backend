@@ -475,6 +475,7 @@ const editBussiness = asyncHandler(async (req, res) => {
 const addOtherInfoTable = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+    const { tableName } = req.params;
     const {
       photo,
       firstName,
@@ -494,7 +495,6 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       DPIN,
       IsDesignatedPartner,
       profitOrLossShare,
-      tableName,
     } = req.body;
 
     if (tableName) {
