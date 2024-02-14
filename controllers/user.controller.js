@@ -475,8 +475,18 @@ const editBussiness = asyncHandler(async (req, res) => {
 const addOtherInfoTable = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+    if (!user || !user.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Invalid user data", status: false });
+    }
+    // let user = req.user.toObject();
     const { tableName } = req.params;
     const {
+      bankName,
+      accountNumber,
+      accountType,
+      IFSC,
       photo,
       firstName,
       lastName,
@@ -500,179 +510,177 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
     if (!tableName) {
       return res
         .status(400)
-        .json({ error: "Please add all fields", status: false });
+        .json({ error: "Please adds all fields", status: false });
     }
 
-    if (user?.isMobileNumberVerified) {
-      if (tableName === "bank") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              bank: [
-                ...bank,
-                {
-                  bankName,
-                  accountNumber,
-                  accountType,
-                  IFSC,
-                },
-              ],
-            },
-          }
-        );
-      }
-      if (tableName === "director") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              director: [
-                ...director,
-                {
-                  photo,
-                  firstName,
-                  lastName,
-                  fathersName,
-                  mobile,
-                  email,
-                  PAN,
-                  aadhar,
-                  passportNo,
-                  DIN,
-                  directorType,
-                  dateOfJoining,
-                  dateOfRetirement,
-                },
-              ],
-            },
-          }
-        );
-      }
-      if (tableName === "shareholder") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              shareholder: [
-                ...shareholder,
-                {
-                  photo,
-                  firstName,
-                  lastName,
-                  fathersName,
-                  mobile,
-                  email,
-                  PAN,
-                  noOfShare,
-                  faceValueOfShare,
-                },
-              ],
-            },
-          }
-        );
-      }
-      if (tableName === "partnerLLP") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              partnerLLP: [
-                ...partnerLLP,
-                {
-                  photo,
-                  firstName,
-                  lastName,
-                  fathersName,
-                  mobile,
-                  email,
-                  PAN,
-                  dateOfJoining,
-                  DPIN,
-                  IsDesignatedPartner,
-                  profitOrLossShare,
-                },
-              ],
-            },
-          }
-        );
-      }
-      if (tableName === "partnerFirm") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              partnerFirm: [
-                ...partnerFirm,
-                {
-                  photo,
-                  firstName,
-                  lastName,
-                  fathersName,
-                  mobile,
-                  email,
-                  PAN,
-                  dateOfJoining,
-                  profitOrLossShare,
-                },
-              ],
-            },
-          }
-        );
-      }
-      if (tableName === "member") {
-        await User.findByIdAndUpdate(
-          { _id: user._id },
-          {
-            otherInformation: {
-              member: [
-                ...member,
-                {
-                  photo,
-                  firstName,
-                  lastName,
-                  fathersName,
-                  mobile,
-                  email,
-                  PAN,
-                },
-              ],
-            },
-          }
-        );
-      }
+    let updateField = {};
 
-      //send email for User Updated
-      const mailOptions = {
-        from: "taxjugnoo@gmail.com",
-        to: user.email,
-        subject: "Other Information Added Successfully",
-        text: `Hi ${user.name},
+    switch (tableName) {
+      case "bank":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            bank: [
+              ...(user.otherInformation?.bank || []),
+              {
+                bankName,
+                accountNumber,
+                accountType,
+                IFSC,
+              },
+            ],
+          },
+        };
+        break;
+      case "director":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            director: [
+              ...(user.otherInformation?.director || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                aadhar,
+                passportNo,
+                DIN,
+                directorType,
+                dateOfJoining,
+                dateOfRetirement,
+              },
+            ],
+          },
+        };
+        break;
+      case "shareholder":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            shareholder: [
+              ...(user.otherInformation?.shareholder || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                noOfShare,
+                faceValueOfShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "partnerLLP":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerLLP: [
+              ...(user.otherInformation?.partnerLLP || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                DPIN,
+                IsDesignatedPartner,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "partnerFirm":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerFirm: [
+              ...(user.otherInformation?.partnerFirm || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "member":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            member: [
+              ...(user.otherInformation?.member || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
 
-  Other Information has been added Successfully .
+      // Add other cases for different tableName values...
 
-  Keep it safe! If you need help, reach out to us.
-  
-  Best,
-  Team Tax Jugnoo`,
-      };
-
-      sendEmail(mailOptions);
-      const updatedUser = await User.findOne({
-        mobileNumber: user.mobileNumber,
-      });
-
-      user = updatedUser.toObject();
-      delete user.otp;
-
-      return res.status(201).json({
-        data: user,
-        token: generateToken(user._id),
-        status: true,
-      });
-    } else {
-      return res.status(400).json({ error: "invalid user data" });
+      default:
+        return res
+          .status(400)
+          .json({ error: "Invalid tableName", status: false });
     }
+    await User.findByIdAndUpdate({ _id: user._id }, updateField);
+
+    //send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Other Information Added Successfully",
+      text: `Hi ${user.name},
+
+    Other Information has been added Successfully .
+
+    Keep it safe! If you need help, reach out to us.
+
+    Best,
+    Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+    const updatedUser = await User.findOne({
+      mobileNumber: user.mobileNumber,
+    });
+
+    user = updatedUser.toObject();
+    delete user.otp;
+
+    return res.status(201).json({
+      data: user,
+      token: generateToken(user._id),
+      status: true,
+    });
   } catch (error) {
     console.error("Error in addIdUser:", error);
     return res
