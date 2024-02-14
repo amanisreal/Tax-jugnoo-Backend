@@ -497,7 +497,7 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       profitOrLossShare,
     } = req.body;
 
-    if (tableName) {
+    if (!tableName) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
