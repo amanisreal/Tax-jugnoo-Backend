@@ -510,7 +510,7 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
     if (!tableName) {
       return res
         .status(400)
-        .json({ error: "Please adds all fields", status: false });
+        .json({ error: "Please add all fields", status: false });
     }
 
     let updateField = {};
@@ -689,6 +689,367 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
   }
 });
 
+const editOtherInfoTable = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    if (!user || !user.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Invalid user data", status: false });
+    }
+
+    const { tableName, id } = req.params;
+    const {
+      bankName,
+      accountNumber,
+      accountType,
+      IFSC,
+      photo,
+      firstName,
+      lastName,
+      fathersName,
+      mobile,
+      email,
+      PAN,
+      aadhar,
+      passportNo,
+      DIN,
+      directorType,
+      dateOfJoining,
+      dateOfRetirement,
+      noOfShare,
+      faceValueOfShare,
+      DPIN,
+      IsDesignatedPartner,
+      profitOrLossShare,
+    } = req.body;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ error: "Please provide the ID to edit", status: false });
+    }
+
+    let updateField = {};
+
+    switch (tableName) {
+      case "bank":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            bank: [
+              ...(user.otherInformation?.bank || []),
+              {
+                bankName,
+                accountNumber,
+                accountType,
+                IFSC,
+              },
+            ],
+          },
+        };
+        break;
+      case "director":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            director: [
+              ...(user.otherInformation?.director || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                aadhar,
+                passportNo,
+                DIN,
+                directorType,
+                dateOfJoining,
+                dateOfRetirement,
+              },
+            ],
+          },
+        };
+        break;
+      case "shareholder":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            shareholder: [
+              ...(user.otherInformation?.shareholder || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                noOfShare,
+                faceValueOfShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "partnerLLP":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerLLP: [
+              ...(user.otherInformation?.partnerLLP || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                DPIN,
+                IsDesignatedPartner,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "partnerFirm":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerFirm: [
+              ...(user.otherInformation?.partnerFirm || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
+      case "member":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            member: [
+              ...(user.otherInformation?.member || []),
+              {
+                photo,
+                firstName,
+                lastName,
+                fathersName,
+                mobile,
+                email,
+                PAN,
+                dateOfJoining,
+                profitOrLossShare,
+              },
+            ],
+          },
+        };
+        break;
+
+      // Add other cases for different tableName values...
+
+      default:
+        return res
+          .status(400)
+          .json({ error: "Invalid tableName", status: false });
+    }
+
+    updateField = {
+      otherInformation: {
+        ...user.otherInformation,
+        [tableName]: user.otherInformation[tableName].map((item) => {
+          if (item._id.toString() === id) {
+            // Assuming _id is the unique identifier
+            return {
+              ...item,
+              // Update fields here based on the request body
+            };
+          }
+          return item;
+        }),
+      },
+    };
+
+    await User.findByIdAndUpdate({ _id: user._id }, updateField);
+
+    //send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Other Information Added Successfully",
+      text: `Hi ${user.name},
+
+    Other Information has been added Successfully .
+
+    Keep it safe! If you need help, reach out to us.
+
+    Best,
+    Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+    const updatedUser = await User.findOne({
+      mobileNumber: user.mobileNumber,
+    });
+
+    user = updatedUser.toObject();
+    delete user.otp;
+
+    return res.status(201).json({
+      data: user,
+      token: generateToken(user._id),
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error in editOtherInfoTable:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
+const deleteOtherInfoEntry = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    if (!user || !user.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Invalid user data", status: false });
+    }
+
+    const { tableName, id } = req.params;
+
+    if (!tableName || !id) {
+      return res.status(400).json({
+        error: "Please provide tableName and ID to delete",
+        status: false,
+      });
+    }
+
+    let updateField = {};
+
+    switch (tableName) {
+      case "bank":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            bank: user.otherInformation.bank.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      case "director":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            director: user.otherInformation.director.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      case "shareholder":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            shareholder: user.otherInformation.shareholder.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      case "partnerLLP":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerLLP: user.otherInformation.partnerLLP.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      case "partnerFirm":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            partnerFirm: user.otherInformation.partnerFirm.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      case "member":
+        updateField = {
+          otherInformation: {
+            ...user.otherInformation,
+            member: user.otherInformation.member.filter(
+              (item) => item._id.toString() !== id
+            ),
+          },
+        };
+        break;
+      // Add other cases for different tableName values...
+
+      default:
+        return res
+          .status(400)
+          .json({ error: "Invalid tableName", status: false });
+    }
+
+    await User.findByIdAndUpdate({ _id: user._id }, updateField);
+
+    //send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Other Information Deleted Successfully",
+      text: `Hi ${user.name},
+
+    Other Information has been deleted Successfully.
+
+    Keep it safe! If you need help, reach out to us.
+
+    Best,
+    Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+    const updatedUser = await User.findOne({
+      mobileNumber: user.mobileNumber,
+    });
+
+    user = updatedUser.toObject();
+    delete user.otp;
+
+    return res.status(200).json({
+      data: user,
+      token: generateToken(user._id),
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error in deleteOtherInfoEntry:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, mobileNumber } = req.body;
   if (!name || !email || !mobileNumber) {
@@ -792,4 +1153,6 @@ export {
   addBussiness,
   editBussiness,
   addOtherInfoTable,
+  editOtherInfoTable,
+  deleteOtherInfoEntry,
 };

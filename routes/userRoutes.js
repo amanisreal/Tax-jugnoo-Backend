@@ -14,6 +14,8 @@ import {
   addBussiness,
   editBussiness,
   addOtherInfoTable,
+  editOtherInfoTable,
+  deleteOtherInfoEntry,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -35,6 +37,15 @@ router.post(
   authMiddleware.protect,
   addOtherInfoTable
 );
-// router.route("/").get(getAllUser);
+router.put(
+  "/editOtherInfoTable/:tableName/:id",
+  authMiddleware.protect,
+  editOtherInfoTable
+);
+router.delete(
+  "/deleteOtherInfoEntry/:tableName/:id",
+  authMiddleware.protect,
+  deleteOtherInfoEntry
+);
 
 export default router;
