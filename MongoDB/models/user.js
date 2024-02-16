@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const idSchema = new mongoose.Schema({
   name: String,
-  information: { type: String, unique: true },
+  information: String,
 });
 
 const businessInformationSchema = new mongoose.Schema({
@@ -47,23 +47,23 @@ const UserSchema = new mongoose.Schema(
     mobileNumber: { type: Number, required: true, unique: true },
     email: { type: String, default: "" },
     dob: { type: String, default: "" },
-    aadhar: { type: Number },
+    aadhar: { type: Number, default: null },
     pan: { type: String, default: "" },
     avatar: { type: String, default: "" },
-    otp: { type: Number, default: "" },
+    otp: { type: Number, default: null },
     isMobileNumberVerified: { type: Boolean, default: false },
     isEmailVerified: { type: Boolean, default: false },
-    category: String,
-    fathersName: String,
-    ids: [idSchema],
-    businessInformation: [businessInformationSchema],
+    category: { type: String, default: "" },
+    fathersName: { type: String, default: "" },
+    ids: { type: [idSchema], default: [] },
+    businessInformation: { type: [businessInformationSchema], default: [] },
     otherInformation: {
-      bank: [bankSchema],
-      director: [memberSchema],
-      shareholder: [memberSchema],
-      partnerLLP: [memberSchema],
-      partnerFirm: [memberSchema],
-      member: [memberSchema],
+      bank: { type: [bankSchema], default: [] },
+      director: { type: [memberSchema], default: [] },
+      shareholder: { type: [memberSchema], default: [] },
+      partnerLLP: { type: [memberSchema], default: [] },
+      partnerFirm: { type: [memberSchema], default: [] },
+      member: { type: [memberSchema], default: [] },
     },
   },
 

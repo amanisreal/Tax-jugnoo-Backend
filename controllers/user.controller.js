@@ -8,67 +8,81 @@ import { sendEmail } from "../helper/email.js";
 // @access  Public
 
 const sendOtp = asyncHandler(async (req, res) => {
-  const { mobileNumber } = req.body;
-  if (!mobileNumber) {
-    return res
-      .status(400)
-      .json({ error: "Please add all fields", status: false });
-  }
+  try {
+    const { mobileNumber } = req.body;
 
-  // Check if user exists
-  const userExists = await User.findOne({ mobileNumber });
+    if (!mobileNumber) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields", status: false });
+    }
 
-  if (userExists?.email) {
-    // send otp in both email and mobileNumber number
-    const myOtp = generateOtp();
+    // Check if user exists
+    let userExists = await User.findOne({ mobileNumber });
 
-    await User.findByIdAndUpdate(
-      { _id: userExists._id },
-      {
-        otp: myOtp,
+    if (userExists) {
+      // User already exists, update OTP
+      const myOtp = generateOtp();
+
+      await User.findByIdAndUpdate(
+        { _id: userExists._id },
+        {
+          otp: myOtp,
+        }
+      );
+
+      if (userExists.email) {
+        // Send OTP in both email and mobileNumber
+        const mailOptions = {
+          from: "taxjugnoo@gmail.com",
+          to: userExists.email,
+          subject: "Your Tax Jugnoo OTP",
+          text: `Hi Tax jugnoo User,
+
+          Here's your OTP for Tax Jugnoo: ${myOtp}.
+          
+          Keep it safe! If you need help, reach out to us.
+          
+          Best,
+          Team Tax Jugnoo`,
+        };
+
+        sendEmail(mailOptions);
+
+        return res.status(200).json({
+          message: "OTP successfully sent to your email and contact number",
+          status: true,
+        });
+      } else {
+        // Send OTP only to mobileNumber
+        return res.status(200).json({
+          message: "OTP successfully sent to your contact number",
+          status: true,
+        });
       }
-    );
+    } else {
+      // User doesn't exist, create a new user
+      const myOtp = generateOtp();
+      console.log("OTP generated", myOtp);
 
-    //send email for sign up user
-    const mailOptions = {
-      from: "taxjugnoo@gmail.com",
-      to: userExists?.email,
-      subject: "Your Tax Jugnoo OTP",
-      text: `Hi Tax jugnoo User,
+      const newUser = await User.create({
+        otp: myOtp,
+        mobileNumber,
+        isEmailVerified: false,
+        isMobileNumberVerified: false,
+      });
 
-      Here's your OTP for Tax Jugnoo: ${myOtp}.
-      
-      Keep it safe! If you need help, reach out to us.
-      
-      Best,
-      Team Tax Jugnoo`,
-    };
-
-    sendEmail(mailOptions);
-
-    return res.status(200).json({
-      message: "OTP successfully sent to your email and contact number",
-      status: true,
-    });
-  } else {
-    //send otp only in mobileNumber number
-    const myOtp = generateOtp();
-    console.log("OTP generated", myOtp);
-
-    const user = await User.create({
-      otp: myOtp,
-      mobileNumber,
-      isEmailVerified: false,
-      isMobileNumberVerified: false,
-    });
-
-    console.log("OTP saved in db", myOtp);
-
-    console.log("Otp sent to " + user.mobileNumber);
-    return res.status(200).json({
-      message: "OTP successfully sent to your contact number",
-      status: true,
-    });
+      console.log("Otp sent to " + newUser.mobileNumber);
+      return res.status(200).json({
+        message: "OTP successfully sent to your contact number",
+        status: true,
+      });
+    }
+  } catch (error) {
+    console.error("Error in sendOtp:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
   }
 });
 
