@@ -692,6 +692,7 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
 const editOtherInfoTable = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+
     if (!user || !user.isMobileNumberVerified) {
       return res
         .status(400)
@@ -730,32 +731,20 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
         .json({ error: "Please provide the ID to edit", status: false });
     }
 
-    let updateField = {};
-
-    switch (tableName) {
-      case "bank":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            bank: [
-              ...(user.otherInformation?.bank || []),
-              {
+    let updateField = {
+      otherInformation: {
+        ...user.otherInformation,
+        [tableName]: user.otherInformation[tableName].map((item) => {
+          if (item._id.toString() === id) {
+            return {
+              ...item,
+              ...(tableName === "bank" && {
                 bankName,
                 accountNumber,
                 accountType,
                 IFSC,
-              },
-            ],
-          },
-        };
-        break;
-      case "director":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            director: [
-              ...(user.otherInformation?.director || []),
-              {
+              }),
+              ...(tableName === "director" && {
                 photo,
                 firstName,
                 lastName,
@@ -769,18 +758,8 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
                 directorType,
                 dateOfJoining,
                 dateOfRetirement,
-              },
-            ],
-          },
-        };
-        break;
-      case "shareholder":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            shareholder: [
-              ...(user.otherInformation?.shareholder || []),
-              {
+              }),
+              ...(tableName === "shareholder" && {
                 photo,
                 firstName,
                 lastName,
@@ -790,18 +769,8 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
                 PAN,
                 noOfShare,
                 faceValueOfShare,
-              },
-            ],
-          },
-        };
-        break;
-      case "partnerLLP":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            partnerLLP: [
-              ...(user.otherInformation?.partnerLLP || []),
-              {
+              }),
+              ...(tableName === "partnerLLP" && {
                 photo,
                 firstName,
                 lastName,
@@ -813,18 +782,8 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
                 DPIN,
                 IsDesignatedPartner,
                 profitOrLossShare,
-              },
-            ],
-          },
-        };
-        break;
-      case "partnerFirm":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            partnerFirm: [
-              ...(user.otherInformation?.partnerFirm || []),
-              {
+              }),
+              ...(tableName === "partnerFirm" && {
                 photo,
                 firstName,
                 lastName,
@@ -834,18 +793,8 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
                 PAN,
                 dateOfJoining,
                 profitOrLossShare,
-              },
-            ],
-          },
-        };
-        break;
-      case "member":
-        updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            member: [
-              ...(user.otherInformation?.member || []),
-              {
+              }),
+              ...(tableName === "member" && {
                 photo,
                 firstName,
                 lastName,
@@ -855,29 +804,7 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
                 PAN,
                 dateOfJoining,
                 profitOrLossShare,
-              },
-            ],
-          },
-        };
-        break;
-
-      // Add other cases for different tableName values...
-
-      default:
-        return res
-          .status(400)
-          .json({ error: "Invalid tableName", status: false });
-    }
-
-    updateField = {
-      otherInformation: {
-        ...user.otherInformation,
-        [tableName]: user.otherInformation[tableName].map((item) => {
-          if (item._id.toString() === id) {
-            // Assuming _id is the unique identifier
-            return {
-              ...item,
-              // Update fields here based on the request body
+              }),
             };
           }
           return item;
@@ -887,22 +814,23 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
 
     await User.findByIdAndUpdate({ _id: user._id }, updateField);
 
-    //send email for User Updated
+    // send email for User Updated
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: user.email,
       subject: "Other Information Added Successfully",
       text: `Hi ${user.name},
 
-    Other Information has been added Successfully .
+      Other Information has been added successfully.
 
-    Keep it safe! If you need help, reach out to us.
+      Keep it safe! If you need help, reach out to us.
 
-    Best,
-    Team Tax Jugnoo`,
+      Best,
+      Team Tax Jugnoo`,
     };
 
     sendEmail(mailOptions);
+
     const updatedUser = await User.findOne({
       mobileNumber: user.mobileNumber,
     });
