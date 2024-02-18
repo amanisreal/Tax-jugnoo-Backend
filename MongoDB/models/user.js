@@ -47,7 +47,7 @@ const UserSchema = new mongoose.Schema(
     mobileNumber: { type: Number, required: true, unique: true },
     email: { type: String, default: "" },
     dob: { type: String, default: "" },
-    aadhar: { type: Number, default: null },
+    address: { type: String, default: "" },
     pan: { type: String, default: "" },
     avatar: { type: String, default: "" },
     otp: { type: Number, default: null },
