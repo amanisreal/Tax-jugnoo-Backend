@@ -16,6 +16,7 @@ import {
   addOtherInfoTable,
   editOtherInfoTable,
   deleteOtherInfoEntry,
+  addMember,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -27,25 +28,31 @@ router.route("/create").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
-router.put("/update", authMiddleware.protect, updateUser);
-router.post("/addId", authMiddleware.protect, addIdUser);
-router.put("/editId/:id", authMiddleware.protect, editIdUser);
-router.post("/addBussiness", authMiddleware.protect, addBussiness);
-router.put("/editBussiness/:id", authMiddleware.protect, editBussiness);
+router.put("/update/:memberId", authMiddleware.protect, updateUser);
+router.post("/addId/:memberId", authMiddleware.protect, addIdUser);
+router.put("/editId/:memberId/:id", authMiddleware.protect, editIdUser);
+router.post("/addBussiness/:memberId", authMiddleware.protect, addBussiness);
+router.put(
+  "/editBussiness/:memberId/:id",
+  authMiddleware.protect,
+  editBussiness
+);
 router.post(
-  "/addOtherInfoTable/:tableName",
+  "/addOtherInfoTable/:memberId/:tableName",
   authMiddleware.protect,
   addOtherInfoTable
 );
 router.put(
-  "/editOtherInfoTable/:tableName/:id",
+  "/editOtherInfoTable/:memberId/:tableName/:id",
   authMiddleware.protect,
   editOtherInfoTable
 );
 router.delete(
-  "/deleteOtherInfoEntry/:tableName/:id",
+  "/deleteOtherInfoEntry/:memberId/:tableName/:id",
   authMiddleware.protect,
   deleteOtherInfoEntry
 );
+
+router.post("/addMember", authMiddleware.protect, addMember);
 
 export default router;

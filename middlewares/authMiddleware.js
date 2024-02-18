@@ -1,8 +1,7 @@
 import pkg from "jsonwebtoken";
 const { verify } = pkg;
-
 import asyncHandler from "express-async-handler";
-import User from "../MongoDB/models/user.js";
+import User from "../MongoDB/models/profile/user.js";
 
 const protect = asyncHandler(async (req, res, next) => {
   let token;
@@ -19,7 +18,6 @@ const protect = asyncHandler(async (req, res, next) => {
       // Verify token
       const decoded = verify(token, process.env.JWT_SECRET);
 
-
       // Get user from the token
       req.user = await User.findById(decoded.id).select("-password");
       next();
@@ -31,8 +29,7 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 
   if (!token) {
-    res.status(401).json({message : "Not Authorized , No Token Found"});
-
+    res.status(401).json({ message: "Not Authorized , No Token Found" });
   }
 });
 

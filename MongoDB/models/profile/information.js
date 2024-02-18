@@ -41,21 +41,8 @@ const memberSchema = new mongoose.Schema({
   profitOrLossShare: String,
 });
 
-const UserSchema = new mongoose.Schema(
+const InformationSchema = new mongoose.Schema(
   {
-    name: { type: String, default: "" },
-    mobileNumber: { type: Number, required: true, unique: true },
-    email: { type: String, default: "" },
-    dob: { type: String, default: "" },
-    address: { type: String, default: "" },
-    state: { type: String, default: "" },
-    pan: { type: String, default: "" },
-    avatar: { type: String, default: "" },
-    otp: { type: Number, default: null },
-    isMobileNumberVerified: { type: Boolean, default: false },
-    isEmailVerified: { type: Boolean, default: false },
-    category: { type: String, default: "" },
-    fathersName: { type: String, default: "" },
     ids: { type: [idSchema], default: [] },
     businessInformation: { type: [businessInformationSchema], default: [] },
     otherInformation: {
@@ -66,11 +53,11 @@ const UserSchema = new mongoose.Schema(
       partnerFirm: { type: [memberSchema], default: [] },
       member: { type: [memberSchema], default: [] },
     },
+    userId: { type: String, required: true, unique: true },
   },
-
   { timestamps: true }
 );
 
-const userModel = mongoose.model("User", UserSchema);
+const userModel = mongoose.model("Information", InformationSchema);
 
 export default userModel;
