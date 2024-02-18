@@ -159,7 +159,8 @@ const verifyOtp = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { name, email, dob, pan, category, address, fathersName } = req.body;
+    const { name, email, dob, pan, category, address, state, fathersName } =
+      req.body;
     if (!name || !email) {
       return res
         .status(400)
@@ -176,6 +177,7 @@ const updateUser = asyncHandler(async (req, res) => {
           dob,
           category,
           address,
+          state,
           fathersName,
         }
       );

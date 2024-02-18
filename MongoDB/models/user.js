@@ -48,6 +48,7 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, default: "" },
     dob: { type: String, default: "" },
     address: { type: String, default: "" },
+    state: { type: String, default: "" },
     pan: { type: String, default: "" },
     avatar: { type: String, default: "" },
     otp: { type: Number, default: null },
