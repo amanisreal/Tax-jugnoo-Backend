@@ -333,9 +333,8 @@ const addIdUser = asyncHandler(async (req, res) => {
 const getInformationUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { name, information } = req.body;
 
-    if (!name || !information || !user || !user?.isMobileNumberVerified) {
+    if (!user || !user?.isMobileNumberVerified) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
