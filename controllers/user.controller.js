@@ -168,6 +168,17 @@ const updateUser = asyncHandler(async (req, res) => {
     let user = req.user.toObject();
     const { name, email, dob, pan, category, address, state, fathersName } =
       req.body;
+    const data = {
+      name: name !== undefined ? name : user.name,
+      email: email !== undefined ? email : user.email,
+      dob: dob !== undefined ? dob : user.dob,
+      pan: pan !== undefined ? pan : user.pan,
+      category: category !== undefined ? category : user.category,
+      address: address !== undefined ? address : user.address,
+      state: state !== undefined ? state : user.state,
+      fathersName: fathersName !== undefined ? fathersName : user.fathersName,
+    };
+
     const { memberId } = req.params;
 
     if (!name || !email) {
@@ -186,14 +197,7 @@ const updateUser = asyncHandler(async (req, res) => {
       await User.findByIdAndUpdate(
         { _id: user._id },
         {
-          name,
-          email,
-          dob,
-          pan,
-          category,
-          address,
-          state,
-          fathersName,
+          ...data,
           members: [...user.members],
         }
       );
@@ -202,10 +206,7 @@ const updateUser = asyncHandler(async (req, res) => {
         mobileNumber: user.mobileNumber,
       });
     } else {
-      const member = await Member.findByIdAndUpdate(
-        { _id: memberId },
-        { name, email, dob, pan, category, address, state, fathersName }
-      );
+      const member = await Member.findByIdAndUpdate({ _id: memberId }, data);
       if (member) {
         updatedUser = await Member.findOne({
           _id: memberId,
