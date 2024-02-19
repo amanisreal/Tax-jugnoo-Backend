@@ -169,14 +169,14 @@ const updateUser = asyncHandler(async (req, res) => {
     const { name, email, dob, pan, category, address, state, fathersName } =
       req.body;
     const data = {
-      name: name !== undefined ? name : user.name,
-      email: email !== undefined ? email : user.email,
-      dob: dob !== undefined ? dob : user.dob,
-      pan: pan !== undefined ? pan : user.pan,
-      category: category !== undefined ? category : user.category,
-      address: address !== undefined ? address : user.address,
-      state: state !== undefined ? state : user.state,
-      fathersName: fathersName !== undefined ? fathersName : user.fathersName,
+      name: name ? name : user.name,
+      email: email ? email : user.email,
+      dob: dob ? dob : user.dob,
+      pan: pan ? pan : user.pan,
+      category: category ? category : user.category,
+      address: address ? address : user.address,
+      state: state ? state : user.state,
+      fathersName: fathersName ? fathersName : user.fathersName,
     };
 
     const { memberId } = req.params;
@@ -194,6 +194,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
     let updatedUser;
     if (memberId == user._id) {
+      console.log("whose user");
       await User.findByIdAndUpdate(
         { _id: user._id },
         {
@@ -202,13 +203,13 @@ const updateUser = asyncHandler(async (req, res) => {
         }
       );
 
-      updatedUser = await User.findOne({
+      user = await User.findOne({
         mobileNumber: user.mobileNumber,
       });
     } else {
       const member = await Member.findByIdAndUpdate({ _id: memberId }, data);
       if (member) {
-        updatedUser = await Member.findOne({
+        user = await Member.findOne({
           _id: memberId,
         });
       } else {
@@ -218,11 +219,11 @@ const updateUser = asyncHandler(async (req, res) => {
         });
       }
     }
+    user = user.toObject();
 
     // update member name
-    await User.findByIdAndUpdate(
-      { _id: user._id },
-      {
+    if (user.members) {
+      await User.findByIdAndUpdate(user._id, {
         ...user,
         members: user.members.map((item) => {
           if (item.memberId == memberId) {
@@ -233,8 +234,8 @@ const updateUser = asyncHandler(async (req, res) => {
           }
           return item;
         }),
-      }
-    );
+      });
+    }
 
     //send email for User Updated
     const mailOptions = {
@@ -253,7 +254,6 @@ Team Tax Jugnoo`,
 
     sendEmail(mailOptions);
 
-    user = updatedUser.toObject();
     if (memberId === user._id) {
       delete user.otp;
     }
