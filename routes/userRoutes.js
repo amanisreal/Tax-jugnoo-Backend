@@ -18,6 +18,7 @@ import {
   deleteOtherInfoEntry,
   addMember,
   getAllMember,
+  getIdUser,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -31,6 +32,7 @@ router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);
 router.put("/update/:memberId", authMiddleware.protect, updateUser);
 router.post("/addId/:memberId", authMiddleware.protect, addIdUser);
+router.get("/getIds/:memberId", authMiddleware.protect, getIdUser);
 router.put("/editId/:memberId/:id", authMiddleware.protect, editIdUser);
 router.post("/addBussiness/:memberId", authMiddleware.protect, addBussiness);
 router.put(

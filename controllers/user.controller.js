@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import User from "../MongoDB/models/profile/user.js";
+import Information from "../MongoDB/models/profile/information.js";
 import Member from "../MongoDB/models/profile/member.js";
 import jwt from "jsonwebtoken";
 import { sendEmail } from "../helper/email.js";
@@ -276,51 +277,77 @@ const addIdUser = asyncHandler(async (req, res) => {
     let user = req.user.toObject();
     const { name, information } = req.body;
 
-    if (!name || !information) {
+    if (!name || !information || !user || !user?.isMobileNumberVerified) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
     }
 
-    if (user?.isMobileNumberVerified) {
-      await User.findByIdAndUpdate(
-        { _id: user._id },
+    let userInformation = await Information.findOne({ userId: user._id });
+    userInformation = userInformation.toObject();
+    if (!userInformation) {
+      userInformation = await Information.create({
+        ids: [{ name, information }],
+        userId: user._id,
+      });
+    } else {
+      userInformation = await Information.findByIdAndUpdate(
+        userInformation._id,
         {
-          ids: [...user.ids, { name, information }],
+          ...userInformation,
+          ids: [...userInformation.ids, { name, information }],
         }
       );
+    }
 
-      //send email for User Updated
-      const mailOptions = {
-        from: "taxjugnoo@gmail.com",
-        to: user.email,
-        subject: "User Details Updated Successfully",
-        text: `Hi ${user.name},
+    //send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "User Details Updated Successfully",
+      text: `Hi ${user.name},
 
-  Your Details has been Verified Successfully .
+ Id Added Successfully .
   
   Keep it safe! If you need help, reach out to us.
   
   Best,
   Team Tax Jugnoo`,
-      };
+    };
 
-      sendEmail(mailOptions);
-      const updatedUser = await User.findOne({
-        mobileNumber: user.mobileNumber,
-      });
+    sendEmail(mailOptions);
 
-      user = updatedUser.toObject();
-      delete user.otp;
+    userInformation = userInformation.toObject();
 
-      return res.status(201).json({
-        data: user,
-        token: generateToken(user._id),
-        status: true,
-      });
-    } else {
-      return res.status(400).json({ error: "invalid user data" });
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error in addIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+const getIdUser = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { name, information } = req.body;
+
+    if (!name || !information || !user || !user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields", status: false });
     }
+
+    let userInformation = await Information.findOne({ userId: user._id });
+    userInformation = userInformation.toObject();
+
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+    });
   } catch (error) {
     console.error("Error in addIdUser:", error);
     return res
@@ -1227,6 +1254,7 @@ export {
   verifyOtp,
   updateUser,
   addIdUser,
+  getIdUser,
   editIdUser,
   addBussiness,
   editBussiness,
