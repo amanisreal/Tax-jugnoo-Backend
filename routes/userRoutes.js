@@ -17,6 +17,7 @@ import {
   editOtherInfoTable,
   deleteOtherInfoEntry,
   addMember,
+  getAllMember,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -54,5 +55,6 @@ router.delete(
 );
 
 router.post("/addMember", authMiddleware.protect, addMember);
+router.get("/member", authMiddleware.protect, getAllMember);
 
 export default router;

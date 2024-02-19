@@ -69,7 +69,6 @@ const sendOtp = asyncHandler(async (req, res) => {
         mobileNumber,
       });
       user = user.toObject();
-      console.log("user", user._id);
 
       await User.findByIdAndUpdate(
         { _id: user._id },
@@ -207,14 +206,20 @@ const updateUser = asyncHandler(async (req, res) => {
         { _id: memberId },
         { name, email, dob, pan, category, address, state, fathersName }
       );
-
-      updatedUser = await Member.findOne({
-        mobileNumber: member.mobileNumber,
-      });
+      if (member) {
+        updatedUser = await Member.findOne({
+          _id: memberId,
+        });
+      } else {
+        return res.status(400).json({
+          error: "Please fill all fields correctly. Check member id",
+          status: false,
+        });
+      }
     }
 
     // update member name
-    user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
       { _id: user._id },
       {
         ...user,
@@ -545,9 +550,11 @@ const addMember = asyncHandler(async (req, res) => {
     }
 
     if (user?.isMobileNumberVerified) {
-      const member = await Member.create({
+      let member = await Member.create({
         name,
+        adminId: user._id,
       });
+      member = member.toObject();
 
       await User.findByIdAndUpdate(
         { _id: user._id },
@@ -588,6 +595,25 @@ const addMember = asyncHandler(async (req, res) => {
     }
   } catch (error) {
     console.error("Error in addIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
+const getAllMember = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    if (!user && user?.isMobileNumberVerified) {
+      return res.status(400).json({ error: "Not a valid user", status: false });
+    }
+
+    return res.status(201).json({
+      data: user.members,
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error is :", error);
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
@@ -1207,4 +1233,5 @@ export {
   editOtherInfoTable,
   deleteOtherInfoEntry,
   addMember,
+  getAllMember,
 };

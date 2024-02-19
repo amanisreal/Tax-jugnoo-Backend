@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const MemberSchema = new mongoose.Schema(
   {
     name: { type: String, default: "" },
-    mobileNumber: { type: Number, required: true, unique: true },
+    mobileNumber: { type: Number },
     email: { type: String, default: "" },
     dob: { type: String, default: "" },
     address: { type: String, default: "" },
@@ -14,7 +14,7 @@ const MemberSchema = new mongoose.Schema(
     isEmailVerified: { type: Boolean, default: false },
     category: { type: String, default: "" },
     fathersName: { type: String, default: "" },
-    adminId: { type: String, required: true, unique: true },
+    adminId: { type: String, required: true },
   },
   { timestamps: true }
 );
