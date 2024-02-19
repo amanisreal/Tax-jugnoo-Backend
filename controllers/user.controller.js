@@ -55,7 +55,6 @@ const sendOtp = asyncHandler(async (req, res) => {
           status: true,
         });
       } else {
-        // Send OTP only to mobileNumber
         return res.status(200).json({
           message: "OTP successfully sent to your contact number",
           status: true,
@@ -64,16 +63,24 @@ const sendOtp = asyncHandler(async (req, res) => {
     } else {
       // User doesn't exist, create a new user
       const myOtp = generateOtp();
-      console.log("OTP generated", myOtp);
 
-      const newUser = await User.create({
+      let user = await User.create({
         otp: myOtp,
         mobileNumber,
-        isEmailVerified: false,
-        isMobileNumberVerified: false,
       });
+      user = user.toObject();
+      console.log("user", user._id);
 
-      console.log("Otp sent to " + newUser.mobileNumber);
+      await User.findByIdAndUpdate(
+        { _id: user._id },
+        {
+          ...user,
+          members: [{ name: "Group Admin", memberId: user._id }],
+        }
+      );
+
+      console.log("User created and updated successfully.");
+
       return res.status(200).json({
         message: "OTP successfully sent to your contact number",
         status: true,
@@ -160,10 +167,11 @@ const verifyOtp = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const data = req.body;
+    const { name, email, dob, pan, category, address, state, fathersName } =
+      req.body;
     const { memberId } = req.params;
 
-    if (!data.name || !data.email) {
+    if (!name || !email) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
@@ -175,19 +183,52 @@ const updateUser = asyncHandler(async (req, res) => {
     }
 
     let updatedUser;
-    if (memberId === user._id) {
-      await User.findByIdAndUpdate({ _id: user._id }, data);
+    if (memberId == user._id) {
+      await User.findByIdAndUpdate(
+        { _id: user._id },
+        {
+          name,
+          email,
+          dob,
+          pan,
+          category,
+          address,
+          state,
+          fathersName,
+          members: [...user.members],
+        }
+      );
 
       updatedUser = await User.findOne({
         mobileNumber: user.mobileNumber,
       });
     } else {
-      const member = await Member.findByIdAndUpdate({ _id: memberId }, data);
+      const member = await Member.findByIdAndUpdate(
+        { _id: memberId },
+        { name, email, dob, pan, category, address, state, fathersName }
+      );
 
       updatedUser = await Member.findOne({
         mobileNumber: member.mobileNumber,
       });
     }
+
+    // update member name
+    user = await User.findByIdAndUpdate(
+      { _id: user._id },
+      {
+        ...user,
+        members: user.members.map((item) => {
+          if (item.memberId == memberId) {
+            return {
+              ...item,
+              name: name,
+            };
+          }
+          return item;
+        }),
+      }
+    );
 
     //send email for User Updated
     const mailOptions = {
@@ -207,7 +248,9 @@ Team Tax Jugnoo`,
     sendEmail(mailOptions);
 
     user = updatedUser.toObject();
-    delete user.otp;
+    if (memberId === user._id) {
+      delete user.otp;
+    }
 
     return res.status(201).json({
       data: user,
