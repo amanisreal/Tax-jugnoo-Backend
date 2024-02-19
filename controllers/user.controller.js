@@ -330,7 +330,7 @@ const addIdUser = asyncHandler(async (req, res) => {
       .json({ error: "Internal Server Error", status: false });
   }
 });
-const getIdUser = asyncHandler(async (req, res) => {
+const getInformationUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { name, information } = req.body;
@@ -1254,7 +1254,7 @@ export {
   verifyOtp,
   updateUser,
   addIdUser,
-  getIdUser,
+  getInformationUser,
   editIdUser,
   addBussiness,
   editBussiness,
