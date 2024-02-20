@@ -25,8 +25,6 @@ const router = express.Router();
 
 router.get("/me", authMiddleware.protect, getMe);
 router.route("/create").post(registerUser);
-// the above /create api has any use?
-
 router.route("/login").post(loginUser);
 router.route("/send-otp").post(sendOtp);
 router.route("/verify-otp").post(verifyOtp);

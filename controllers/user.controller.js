@@ -276,19 +276,26 @@ const addIdUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { name, information } = req.body;
+    const { memberId } = req.params;
 
-    if (!name || !information || !user || !user?.isMobileNumberVerified) {
+    if (
+      !name ||
+      !information ||
+      !user ||
+      !user?.isMobileNumberVerified ||
+      !memberId
+    ) {
       return res
         .status(400)
         .json({ error: "Please add all fields", status: false });
     }
 
-    let userInformation = await Information.findOne({ userId: user._id });
+    let userInformation = await Information.findOne({ userId: memberId });
     userInformation = userInformation.toObject();
     if (!userInformation) {
       userInformation = await Information.create({
         ids: [{ name, information }],
-        userId: user._id,
+        userId: memberId,
       });
     } else {
       userInformation = await Information.findByIdAndUpdate(
@@ -330,6 +337,7 @@ const addIdUser = asyncHandler(async (req, res) => {
       .json({ error: "Internal Server Error", status: false });
   }
 });
+
 const getInformationUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
@@ -359,63 +367,69 @@ const editIdUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { name, information } = req.body;
-    const { id } = req.params;
+    const { memberId, id } = req.params;
 
-    if (!name || !information || !id) {
+    if (
+      !name ||
+      !information ||
+      !user ||
+      !user?.isMobileNumberVerified ||
+      !memberId
+    ) {
       return res
         .status(400)
         .json({ error: "Please add all fields including 'id'", status: false });
     }
 
-    if (user?.isMobileNumberVerified) {
+    let userInformation = await Information.findOne({ userId: memberId });
+    userInformation = userInformation.toObject();
+
+    if (userInformation) {
       // Find the index of the ID to be edited
-      const idIndex = user.ids.findIndex((item) => item._id == id);
+      const idIndex = userInformation.ids.findIndex((item) => item._id == id);
 
       if (idIndex === -1) {
         return res.status(400).json({ error: "ID not found", status: false });
       }
 
       // Update the specific ID in the array
-      user.ids[idIndex] = { _id: id, name, information };
+      userInformation.ids[idIndex] = { _id: id, name, information };
 
-      await User.findByIdAndUpdate(
-        { _id: user._id },
+      userInformation = await Information.findOneAndUpdate(
+        { userId: memberId },
         {
-          ids: user.ids,
-        }
+          ids: userInformation.ids,
+        },
+        { new: true }
       );
+    } else {
+      return res
+        .status(500)
+        .json({ error: "User Information Not Found", status: false });
+    }
 
-      // Send email for User Updated
-      const mailOptions = {
-        from: "taxjugnoo@gmail.com",
-        to: user.email,
-        subject: "User Details Updated Successfully",
-        text: `Hi ${user.name},
+    // Send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "User Details Updated Successfully",
+      text: `Hi ${user.name},
 
-Your Details has been Verified Successfully.
+Your Details has been Updated Successfully.
 Keep it safe! If you need help, reach out to us.
 
 Best,
 Team Tax Jugnoo`,
-      };
+    };
 
-      sendEmail(mailOptions);
+    sendEmail(mailOptions);
 
-      const updatedUser = await User.findOne({
-        mobileNumber: user.mobileNumber,
-      });
+    userInformation = userInformation.toObject();
 
-      user = updatedUser.toObject();
-      delete user.otp;
-
-      return res.status(201).json({
-        data: user,
-        token: generateToken(user._id),
-        status: true,
-      });
-    } else {
-      return res.status(400).json({ error: "Invalid user data" });
-    }
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+    });
   } catch (error) {
     console.error("Error in editIdUser:", error);
     return res
