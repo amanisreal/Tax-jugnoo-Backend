@@ -272,6 +272,44 @@ Team Tax Jugnoo`,
   }
 });
 
+const getUserData = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { memberId } = req.params;
+
+    if (!memberId) {
+      return res
+        .status(400)
+        .json({ error: "Please provide 'memberId'", status: false });
+    }
+
+    let userData;
+    if (user._id == memberId) {
+      userData = await User.findOne({ _id: memberId });
+    } else {
+      userData = await Member.findOne({ _id: memberId });
+    }
+    userData = userData.toObject();
+
+    if (!userData) {
+      return res.status(404).json({
+        error: "User not found with the provided memberId",
+        status: false,
+      });
+    }
+
+    return res.status(200).json({
+      data: userData,
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error in getUserData:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
 const addIdUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
@@ -432,6 +470,76 @@ Team Tax Jugnoo`,
     });
   } catch (error) {
     console.error("Error in editIdUser:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
+const deleteIdUser = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { memberId, id } = req.params;
+
+    if (!memberId || !id) {
+      return res
+        .status(400)
+        .json({ error: "Please provide 'memberId' and 'id'", status: false });
+    }
+
+    let userInformation = await Information.findOne({ userId: memberId });
+    userInformation = userInformation.toObject();
+
+    if (!userInformation) {
+      return res
+        .status(404)
+        .json({ error: "User Information Not Found", status: false });
+    }
+
+    // Find the index of the ID to be deleted
+    const idIndex = userInformation.ids.findIndex((item) => item._id == id);
+
+    if (idIndex === -1) {
+      return res.status(404).json({ error: "ID not found", status: false });
+    }
+
+    // Remove the specific ID from the array
+    userInformation.ids.splice(idIndex, 1);
+
+    // Update the user information without the deleted ID
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      {
+        ids: userInformation.ids,
+      },
+      { new: true }
+    );
+
+    // Send email notification for ID deletion
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email, // Assuming 'user' is defined in the calling function
+      subject: "User ID Deleted Successfully",
+      text: `Hi ${user.name},
+
+The ID with details has been deleted successfully.
+If you have any concerns, please reach out to us.
+
+Best,
+Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+
+    userInformation = userInformation.toObject();
+
+    return res.status(200).json({
+      data: userInformation,
+      status: true,
+      message: "Id deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error in deleteIdUser:", error);
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
@@ -1266,6 +1374,7 @@ export {
   sendOtp,
   verifyOtp,
   updateUser,
+  getUserData,
   addIdUser,
   getInformationUser,
   editIdUser,
@@ -1276,4 +1385,5 @@ export {
   deleteOtherInfoEntry,
   addMember,
   getAllMember,
+  deleteIdUser,
 };

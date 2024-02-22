@@ -19,11 +19,14 @@ import {
   addMember,
   getAllMember,
   getInformationUser,
+  deleteIdUser,
+  getUserData,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
 
 router.get("/me", authMiddleware.protect, getMe);
+router.get("/user/:memberId", authMiddleware.protect, getUserData);
 router.route("/create").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/send-otp").post(sendOtp);
@@ -36,6 +39,7 @@ router.get(
   getInformationUser
 );
 router.put("/editId/:memberId/:id", authMiddleware.protect, editIdUser);
+router.delete("/deleteId/:memberId/:id", authMiddleware.protect, deleteIdUser);
 router.post("/addBussiness/:memberId", authMiddleware.protect, addBussiness);
 router.put(
   "/editBussiness/:memberId/:id",
