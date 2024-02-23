@@ -550,30 +550,38 @@ const addBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { businessName, businessAddress } = req.body;
+    const { memberId } = req.params;
 
     if (!businessName || !businessAddress) {
       return res
         .status(400)
-        .json({ error: "Please add all fields", status: false });
+        .json({ error: "Please add all fields!", status: false });
+    }
+    if (!user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please verify you mobile number!", status: false });
     }
 
-    if (user?.isMobileNumberVerified) {
-      await User.findByIdAndUpdate(
-        { _id: user._id },
-        {
-          businessInformation: [
-            ...user.businessInformation,
-            { businessName, businessAddress },
-          ],
-        }
-      );
+    let userInformation = await Information.findOne({ userId: memberId });
 
-      //send email for User Updated
-      const mailOptions = {
-        from: "taxjugnoo@gmail.com",
-        to: user.email,
-        subject: "Bussiness Details Added Successfully",
-        text: `Hi ${user.name},
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      {
+        businessInformation: [
+          ...userInformation.businessInformation,
+          { businessName, businessAddress },
+        ],
+      },
+      { new: true }
+    );
+
+    //send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Bussiness Details Added Successfully",
+      text: `Hi ${user.name},
 
   Bussiness Details has been added Successfully .
 
@@ -581,26 +589,18 @@ const addBussiness = asyncHandler(async (req, res) => {
   
   Best,
   Team Tax Jugnoo`,
-      };
+    };
 
-      sendEmail(mailOptions);
-      const updatedUser = await User.findOne({
-        mobileNumber: user.mobileNumber,
-      });
+    sendEmail(mailOptions);
 
-      user = updatedUser.toObject();
-      delete user.otp;
+    userInformation = userInformation.toObject();
 
-      return res.status(201).json({
-        data: user,
-        token: generateToken(user._id),
-        status: true,
-      });
-    } else {
-      return res.status(400).json({ error: "invalid user data" });
-    }
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+      message: "Bussiness Added Successfully",
+    });
   } catch (error) {
-    console.error("Error in addIdUser:", error);
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
@@ -611,48 +611,53 @@ const editBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
     const { businessName, businessAddress, gstNo, msme, shopEst } = req.body;
-    const { id } = req.params;
+    const { id, memberId } = req.params;
 
     if (!businessName || !businessAddress || !gstNo || !msme || !shopEst) {
       return res
         .status(400)
-        .json({ error: "Please add all fields", status: false });
+        .json({ error: "Please add all fields!", status: false });
+    }
+    if (!user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please verify you mobile number!", status: false });
     }
 
-    if (user?.isMobileNumberVerified) {
-      const idIndex = user.businessInformation.findIndex(
-        (item) => item._id == id
-      );
+    let userInformation = await Information.findOne({ userId: memberId });
 
-      if (idIndex === -1) {
-        return res
-          .status(400)
-          .json({ error: "Bussiness not found", status: false });
-      }
+    const idIndex = userInformation.businessInformation.findIndex(
+      (item) => item._id == id
+    );
 
-      // Update the specific ID in the array
-      user.businessInformation[idIndex] = {
-        businessName,
-        businessAddress,
-        gstNo,
-        msme,
-        shopEst,
-        _id: id,
-      };
+    if (idIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Bussiness not found", status: false });
+    }
 
-      await User.findByIdAndUpdate(
-        { _id: user._id },
-        {
-          businessInformation: user.businessInformation,
-        }
-      );
+    userInformation.businessInformation[idIndex] = {
+      businessName,
+      businessAddress,
+      gstNo,
+      msme,
+      shopEst,
+      _id: id,
+    };
 
-      //send email for User Updated
-      const mailOptions = {
-        from: "taxjugnoo@gmail.com",
-        to: user.email,
-        subject: "Bussiness Details Added Successfully",
-        text: `Hi ${user.name},
+    userInformation = await Information.findByIdAndUpdate(
+      { userId: memberId },
+      {
+        businessInformation: user.businessInformation,
+      },
+      { new: true }
+    );
+
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Bussiness Details Added Successfully",
+      text: `Hi ${user.name},
 
   Bussiness Details has been added Successfully .
 
@@ -660,26 +665,18 @@ const editBussiness = asyncHandler(async (req, res) => {
   
   Best,
   Team Tax Jugnoo`,
-      };
+    };
 
-      sendEmail(mailOptions);
-      const updatedUser = await User.findOne({
-        mobileNumber: user.mobileNumber,
-      });
+    sendEmail(mailOptions);
 
-      user = updatedUser.toObject();
-      delete user.otp;
+    userInformation = userInformation.toObject();
 
-      return res.status(201).json({
-        data: user,
-        token: generateToken(user._id),
-        status: true,
-      });
-    } else {
-      return res.status(400).json({ error: "invalid user data" });
-    }
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+      message: "Bussiness Updated Successfully",
+    });
   } catch (error) {
-    console.error("Error in addIdUser:", error);
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
