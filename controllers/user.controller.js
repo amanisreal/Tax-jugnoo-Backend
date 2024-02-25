@@ -683,6 +683,74 @@ const editBussiness = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteBussiness = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { id, memberId } = req.params;
+
+    if (!id || !memberId) {
+      return res
+        .status(400)
+        .json({ error: "Please add all fields!", status: false });
+    }
+    if (!user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please verify you mobile number!", status: false });
+    }
+
+    let userInformation = await Information.findOne({ userId: memberId });
+
+    const idIndex = userInformation.businessInformation.findIndex(
+      (item) => item._id == id
+    );
+
+    if (idIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Bussiness not found", status: false });
+    }
+
+    // Remove the specific ID from the array
+    userInformation.businessInformation.splice(idIndex, 1);
+
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      {
+        businessInformation: user.businessInformation,
+      },
+      { new: true }
+    );
+
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Bussiness Details Added Successfully",
+      text: `Hi ${user.name},
+
+  Bussiness details has been deleted successfully .
+  Keep it safe! If you need help, reach out to us.
+  
+  Best,
+  Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+
+    userInformation = userInformation.toObject();
+
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+      message: "Bussiness Deleted Successfully",
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
 // add member
 const addMember = asyncHandler(async (req, res) => {
   try {
@@ -770,13 +838,22 @@ const getAllMember = asyncHandler(async (req, res) => {
 const addOtherInfoTable = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+    const { memberId } = req.params;
+    const { tableName } = req.params;
+
     if (!user || !user.isMobileNumberVerified) {
       return res
         .status(400)
         .json({ error: "Invalid user data", status: false });
     }
-    // let user = req.user.toObject();
-    const { tableName } = req.params;
+
+    if (!memberId || !tableName) {
+      return res.status(400).json({
+        error: "Please provide 'memberId' and 'tableName'",
+        status: false,
+      });
+    }
+
     const {
       bankName,
       accountNumber,
@@ -802,11 +879,8 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       profitOrLossShare,
     } = req.body;
 
-    if (!tableName) {
-      return res
-        .status(400)
-        .json({ error: "Please add all fields", status: false });
-    }
+    let userInformation = await Information.findOne({ userId: memberId });
+    userInformation = userInformation.toObject();
 
     let updateField = {};
 
@@ -814,9 +888,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "bank":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             bank: [
-              ...(user.otherInformation?.bank || []),
+              ...(userInformation.otherInformation?.bank || []),
               {
                 bankName,
                 accountNumber,
@@ -830,9 +904,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "director":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             director: [
-              ...(user.otherInformation?.director || []),
+              ...(userInformation.otherInformation?.director || []),
               {
                 photo,
                 firstName,
@@ -855,9 +929,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "shareholder":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             shareholder: [
-              ...(user.otherInformation?.shareholder || []),
+              ...(userInformation.otherInformation?.shareholder || []),
               {
                 photo,
                 firstName,
@@ -876,9 +950,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "partnerLLP":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             partnerLLP: [
-              ...(user.otherInformation?.partnerLLP || []),
+              ...(userInformation.otherInformation?.partnerLLP || []),
               {
                 photo,
                 firstName,
@@ -899,9 +973,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "partnerFirm":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             partnerFirm: [
-              ...(user.otherInformation?.partnerFirm || []),
+              ...(userInformation.otherInformation?.partnerFirm || []),
               {
                 photo,
                 firstName,
@@ -920,9 +994,9 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       case "member":
         updateField = {
           otherInformation: {
-            ...user.otherInformation,
+            ...userInformation.otherInformation,
             member: [
-              ...(user.otherInformation?.member || []),
+              ...(userInformation.otherInformation?.member || []),
               {
                 photo,
                 firstName,
@@ -946,7 +1020,14 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
           .status(400)
           .json({ error: "Invalid tableName", status: false });
     }
-    await User.findByIdAndUpdate({ _id: user._id }, updateField);
+    // await User.findByIdAndUpdate({ _id: user._id }, updateField);
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      {
+        updateField,
+      },
+      { new: true }
+    );
 
     //send email for User Updated
     const mailOptions = {
@@ -956,7 +1037,6 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
       text: `Hi ${user.name},
 
     Other Information has been added Successfully .
-
     Keep it safe! If you need help, reach out to us.
 
     Best,
@@ -964,16 +1044,11 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
     };
 
     sendEmail(mailOptions);
-    const updatedUser = await User.findOne({
-      mobileNumber: user.mobileNumber,
-    });
 
-    user = updatedUser.toObject();
-    delete user.otp;
+    userInformation = userInformation.toObject();
 
     return res.status(201).json({
-      data: user,
-      token: generateToken(user._id),
+      data: userInformation,
       status: true,
     });
   } catch (error) {
@@ -1383,4 +1458,5 @@ export {
   addMember,
   getAllMember,
   deleteIdUser,
+  deleteBussiness,
 };

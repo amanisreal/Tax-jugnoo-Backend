@@ -13,6 +13,7 @@ import {
   editIdUser,
   addBussiness,
   editBussiness,
+  deleteBussiness,
   addOtherInfoTable,
   editOtherInfoTable,
   deleteOtherInfoEntry,
@@ -46,6 +47,12 @@ router.put(
   authMiddleware.protect,
   editBussiness
 );
+router.delete(
+  "/deleteBussiness/:memberId",
+  authMiddleware.protect,
+  deleteBussiness
+);
+
 router.post(
   "/addOtherInfoTable/:memberId/:tableName",
   authMiddleware.protect,
