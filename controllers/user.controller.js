@@ -556,7 +556,7 @@ const addBussiness = asyncHandler(async (req, res) => {
     const { businessName, businessAddress } = req.body;
     const { memberId } = req.params;
 
-    if (!businessName || !businessAddress) {
+    if (!businessName || !businessAddress || !memberId) {
       return res
         .status(400)
         .json({ error: "Please add all fields!", status: false });
@@ -569,16 +569,24 @@ const addBussiness = asyncHandler(async (req, res) => {
 
     let userInformation = await Information.findOne({ userId: memberId });
 
-    userInformation = await Information.findOneAndUpdate(
-      { userId: memberId },
-      {
-        businessInformation: [
-          ...userInformation.businessInformation,
-          { businessName, businessAddress },
-        ],
-      },
-      { new: true }
-    );
+    if (!userInformation) {
+      userInformation = await Information.create({
+        businessInformation: [{ businessName, businessAddress }],
+        userId: memberId,
+      });
+    } else {
+      userInformation = userInformation.toObject();
+      userInformation = await Information.findOneAndUpdate(
+        { userId: memberId },
+        {
+          businessInformation: [
+            ...userInformation.businessInformation,
+            { businessName, businessAddress },
+          ],
+        },
+        { new: true }
+      );
+    }
 
     //send email for User Updated
     const mailOptions = {
