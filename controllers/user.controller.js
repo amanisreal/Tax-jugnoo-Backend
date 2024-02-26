@@ -330,18 +330,19 @@ const addIdUser = asyncHandler(async (req, res) => {
 
     let userInformation = await Information.findOne({ userId: memberId });
     userInformation = userInformation.toObject();
-    if (!userInformation) {
+    if (!userInformation.ids) {
       userInformation = await Information.create({
         ids: [{ name, information }],
         userId: memberId,
       });
     } else {
-      userInformation = await Information.findByIdAndUpdate(
-        userInformation._id,
+      userInformation = await Information.findOneAndUpdate(
+        { userId: memberId },
         {
           ...userInformation,
           ids: [...userInformation.ids, { name, information }],
-        }
+        },
+        { new: true }
       );
     }
 
@@ -353,8 +354,7 @@ const addIdUser = asyncHandler(async (req, res) => {
       text: `Hi ${user.name},
 
  Id Added Successfully .
-  
-  Keep it safe! If you need help, reach out to us.
+ Keep it safe! If you need help, reach out to us.
   
   Best,
   Team Tax Jugnoo`,
