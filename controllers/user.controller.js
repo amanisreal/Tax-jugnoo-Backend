@@ -572,7 +572,9 @@ const addBussiness = asyncHandler(async (req, res) => {
 
     if (!userInformation) {
       userInformation = await Information.create({
-        businessInformation: [{ businessName, businessAddress }],
+        businessInformation: [
+          { businessName, businessAddress, gstNo: "", msme: "", shopEst: "" },
+        ],
         userId: memberId,
       });
     } else {
@@ -582,7 +584,7 @@ const addBussiness = asyncHandler(async (req, res) => {
         {
           businessInformation: [
             ...userInformation.businessInformation,
-            { businessName, businessAddress },
+            { businessName, businessAddress, gstNo: "", msme: "", shopEst: "" },
           ],
         },
         { new: true }
