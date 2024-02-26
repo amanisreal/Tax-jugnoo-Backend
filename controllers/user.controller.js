@@ -716,13 +716,13 @@ const deleteBussiness = asyncHandler(async (req, res) => {
     const idIndex = userInformation.businessInformation.findIndex(
       (item) => item._id == id
     );
-
+    console.log(":idIndex", idIndex);
     if (idIndex === -1) {
       return res
         .status(400)
         .json({ error: "Bussiness not found", status: false });
     }
-
+    console.log(":idIndex", idIndex);
     // Remove the specific ID from the array
     userInformation.businessInformation.splice(idIndex, 1);
 
