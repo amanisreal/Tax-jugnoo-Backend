@@ -48,7 +48,7 @@ router.put(
   editBussiness
 );
 router.delete(
-  "/deleteBussiness/:memberId",
+  "/deleteBussiness/:memberId/:id",
   authMiddleware.protect,
   deleteBussiness
 );
