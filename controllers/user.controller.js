@@ -379,6 +379,7 @@ const addIdUser = asyncHandler(async (req, res) => {
 const getInformationUser = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+    const { memberId } = req.params;
 
     if (!user || !user?.isMobileNumberVerified) {
       return res
@@ -386,7 +387,7 @@ const getInformationUser = asyncHandler(async (req, res) => {
         .json({ error: "Please add all fields", status: false });
     }
 
-    let userInformation = await Information.findOne({ userId: user._id });
+    let userInformation = await Information.findOne({ userId: memberId });
     userInformation = userInformation.toObject();
 
     return res.status(201).json({
