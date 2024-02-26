@@ -329,13 +329,14 @@ const addIdUser = asyncHandler(async (req, res) => {
     }
 
     let userInformation = await Information.findOne({ userId: memberId });
-    userInformation = userInformation.toObject();
-    if (!userInformation.ids) {
+
+    if (!userInformation) {
       userInformation = await Information.create({
         ids: [{ name, information }],
         userId: memberId,
       });
     } else {
+      userInformation = userInformation.toObject();
       userInformation = await Information.findOneAndUpdate(
         { userId: memberId },
         {
@@ -345,7 +346,7 @@ const addIdUser = asyncHandler(async (req, res) => {
         { new: true }
       );
     }
-
+    userInformation = userInformation.toObject();
     //send email for User Updated
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
