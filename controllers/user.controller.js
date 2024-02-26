@@ -388,7 +388,9 @@ const getInformationUser = asyncHandler(async (req, res) => {
     }
 
     let userInformation = await Information.findOne({ userId: memberId });
-    userInformation = userInformation.toObject();
+    if (userInformation) {
+      userInformation = userInformation.toObject();
+    }
 
     return res.status(201).json({
       data: userInformation,
