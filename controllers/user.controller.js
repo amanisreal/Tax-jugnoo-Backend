@@ -346,7 +346,7 @@ const addIdUser = asyncHandler(async (req, res) => {
         { new: true }
       );
     }
-    userInformation = userInformation.toObject();
+
     //send email for User Updated
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
