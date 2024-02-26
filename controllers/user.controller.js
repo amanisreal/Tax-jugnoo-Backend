@@ -729,7 +729,7 @@ const deleteBussiness = asyncHandler(async (req, res) => {
     userInformation = await Information.findOneAndUpdate(
       { userId: memberId },
       {
-        businessInformation: user.businessInformation,
+        businessInformation: userInformation.businessInformation,
       },
       { new: true }
     );
