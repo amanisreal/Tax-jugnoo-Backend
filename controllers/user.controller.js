@@ -657,10 +657,10 @@ const editBussiness = asyncHandler(async (req, res) => {
       _id: id,
     };
 
-    userInformation = await Information.findByIdAndUpdate(
+    userInformation = await Information.findOneAndUpdate(
       { userId: memberId },
       {
-        businessInformation: user.businessInformation,
+        businessInformation: userInformation.businessInformation,
       },
       { new: true }
     );
@@ -689,9 +689,11 @@ const editBussiness = asyncHandler(async (req, res) => {
       message: "Bussiness Updated Successfully",
     });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", status: false });
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+      message: error.message,
+    });
   }
 });
 
