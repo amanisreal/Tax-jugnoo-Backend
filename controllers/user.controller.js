@@ -193,7 +193,6 @@ const updateUser = asyncHandler(async (req, res) => {
         .json({ error: "Invalid user data", status: false });
     }
 
-    let updatedUser;
     if (memberId == user._id) {
       console.log("whose user");
       await User.findByIdAndUpdate(
@@ -245,8 +244,7 @@ const updateUser = asyncHandler(async (req, res) => {
       subject: "User Details Updated Successfully",
       text: `Hi ${user.name},
 
-Updated Successfully .
-  
+Account Updated Successfully.
 Keep it safe! If you need help, reach out to us.
   
 Best,
@@ -263,6 +261,7 @@ Team Tax Jugnoo`,
       data: user,
       token: generateToken(user._id),
       status: true,
+      message: "User Details Updated Successfully",
     });
   } catch (error) {
     console.error("Error in updateUser:", error);
@@ -354,7 +353,7 @@ const addIdUser = asyncHandler(async (req, res) => {
       subject: "User Details Updated Successfully",
       text: `Hi ${user.name},
 
- Id Added Successfully .
+ Id Added Successfully.
  Keep it safe! If you need help, reach out to us.
   
   Best,
@@ -368,6 +367,7 @@ const addIdUser = asyncHandler(async (req, res) => {
     return res.status(201).json({
       data: userInformation,
       status: true,
+      message: "Id Added Successfully",
     });
   } catch (error) {
     console.error("Error in addIdUser:", error);
@@ -471,6 +471,7 @@ Team Tax Jugnoo`,
     return res.status(201).json({
       data: userInformation,
       status: true,
+      message: "User Information Updated Successfully",
     });
   } catch (error) {
     console.error("Error in editIdUser:", error);
@@ -596,7 +597,6 @@ const addBussiness = asyncHandler(async (req, res) => {
       text: `Hi ${user.name},
 
   Bussiness Details has been added Successfully .
-
   Keep it safe! If you need help, reach out to us.
   
   Best,
@@ -739,7 +739,7 @@ const deleteBussiness = asyncHandler(async (req, res) => {
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: user.email,
-      subject: "Bussiness Details Added Successfully",
+      subject: "Bussiness Details Deleted Successfully",
       text: `Hi ${user.name},
 
   Bussiness details has been deleted successfully .
@@ -794,11 +794,10 @@ const addMember = asyncHandler(async (req, res) => {
       const mailOptions = {
         from: "taxjugnoo@gmail.com",
         to: user.email,
-        subject: "Bussiness Details Added Successfully",
+        subject: "Member Added Successfully",
         text: `Hi ${user.name},
 
- Bussiness Details has been added Successfully .
-
+  Member has been added Successfully .
   Keep it safe! If you need help, reach out to us.
   
   Best,
@@ -815,7 +814,7 @@ const addMember = asyncHandler(async (req, res) => {
 
       return res.status(201).json({
         data: user,
-        token: generateToken(user._id),
+        message: "Member Added Successfully",
         status: true,
       });
     } else {
