@@ -850,8 +850,7 @@ const getAllMember = asyncHandler(async (req, res) => {
 const addOtherInfoTable = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { memberId } = req.params;
-    const { tableName } = req.params;
+    const { memberId, tableName } = req.params;
 
     if (!user || !user.isMobileNumberVerified) {
       return res
@@ -892,135 +891,114 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
     } = req.body;
 
     let userInformation = await Information.findOne({ userId: memberId });
-    userInformation = userInformation.toObject();
+
+    if (!userInformation) {
+      userInformation = await Information.create({ userId: memberId });
+    }
 
     let updateField = {};
 
     switch (tableName) {
       case "bank":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            bank: [
-              ...(userInformation.otherInformation?.bank || []),
-              {
-                bankName,
-                accountNumber,
-                accountType,
-                IFSC,
-              },
-            ],
+          $push: {
+            "otherInformation.bank": {
+              bankName,
+              accountNumber,
+              accountType,
+              IFSC,
+            },
           },
         };
         break;
       case "director":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            director: [
-              ...(userInformation.otherInformation?.director || []),
-              {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                aadhar,
-                passportNo,
-                DIN,
-                directorType,
-                dateOfJoining,
-                dateOfRetirement,
-              },
-            ],
+          $push: {
+            "otherInformation.director": {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              aadhar,
+              passportNo,
+              DIN,
+              directorType,
+              dateOfJoining,
+              dateOfRetirement,
+            },
           },
         };
         break;
       case "shareholder":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            shareholder: [
-              ...(userInformation.otherInformation?.shareholder || []),
-              {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                noOfShare,
-                faceValueOfShare,
-              },
-            ],
+          $push: {
+            "otherInformation.shareholder": {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              noOfShare,
+              faceValueOfShare,
+            },
           },
         };
         break;
       case "partnerLLP":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            partnerLLP: [
-              ...(userInformation.otherInformation?.partnerLLP || []),
-              {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                DPIN,
-                IsDesignatedPartner,
-                profitOrLossShare,
-              },
-            ],
+          $push: {
+            "otherInformation.partnerLLP": {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              DPIN,
+              IsDesignatedPartner,
+              profitOrLossShare,
+            },
           },
         };
         break;
       case "partnerFirm":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            partnerFirm: [
-              ...(userInformation.otherInformation?.partnerFirm || []),
-              {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                profitOrLossShare,
-              },
-            ],
+          $push: {
+            "otherInformation.partnerFirm": {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              profitOrLossShare,
+            },
           },
         };
         break;
       case "member":
         updateField = {
-          otherInformation: {
-            ...userInformation.otherInformation,
-            member: [
-              ...(userInformation.otherInformation?.member || []),
-              {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                profitOrLossShare,
-              },
-            ],
+          $push: {
+            "otherInformation.member": {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              profitOrLossShare,
+            },
           },
         };
         break;
@@ -1032,27 +1010,25 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
           .status(400)
           .json({ error: "Invalid tableName", status: false });
     }
-    // await User.findByIdAndUpdate({ _id: user._id }, updateField);
+
     userInformation = await Information.findOneAndUpdate(
       { userId: memberId },
-      {
-        updateField,
-      },
+      updateField,
       { new: true }
     );
 
-    //send email for User Updated
+    // Send email for User Updated
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: user.email,
       subject: "Other Information Added Successfully",
       text: `Hi ${user.name},
 
-    Other Information has been added Successfully .
-    Keep it safe! If you need help, reach out to us.
+Other Information has been added Successfully.
+Keep it safe! If you need help, reach out to us.
 
-    Best,
-    Team Tax Jugnoo`,
+Best,
+Team Tax Jugnoo`,
     };
 
     sendEmail(mailOptions);
@@ -1061,6 +1037,7 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
 
     return res.status(201).json({
       data: userInformation,
+      message: `Successfully added ${tableName} table`,
       status: true,
     });
   } catch (error) {
@@ -1071,9 +1048,10 @@ const addOtherInfoTable = asyncHandler(async (req, res) => {
   }
 });
 
-const editOtherInfoTable = asyncHandler(async (req, res) => {
+const editOtherInfoTableRow = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
+    const { memberId, tableName, id } = req.params;
 
     if (!user || !user.isMobileNumberVerified) {
       return res
@@ -1081,7 +1059,13 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
         .json({ error: "Invalid user data", status: false });
     }
 
-    const { tableName, id } = req.params;
+    if (!memberId || !tableName || !id) {
+      return res.status(400).json({
+        error: "Please provide 'memberId', 'tableName', and 'id'",
+        status: false,
+      });
+    }
+
     const {
       bankName,
       accountNumber,
@@ -1107,146 +1091,11 @@ const editOtherInfoTable = asyncHandler(async (req, res) => {
       profitOrLossShare,
     } = req.body;
 
-    if (!id) {
-      return res
-        .status(400)
-        .json({ error: "Please provide the ID to edit", status: false });
-    }
+    let userInformation = await Information.findOne({ userId: memberId });
 
-    let updateField = {
-      otherInformation: {
-        ...user.otherInformation,
-        [tableName]: user.otherInformation[tableName].map((item) => {
-          if (item._id.toString() === id) {
-            return {
-              ...item,
-              ...(tableName === "bank" && {
-                bankName,
-                accountNumber,
-                accountType,
-                IFSC,
-              }),
-              ...(tableName === "director" && {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                aadhar,
-                passportNo,
-                DIN,
-                directorType,
-                dateOfJoining,
-                dateOfRetirement,
-              }),
-              ...(tableName === "shareholder" && {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                noOfShare,
-                faceValueOfShare,
-              }),
-              ...(tableName === "partnerLLP" && {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                DPIN,
-                IsDesignatedPartner,
-                profitOrLossShare,
-              }),
-              ...(tableName === "partnerFirm" && {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                profitOrLossShare,
-              }),
-              ...(tableName === "member" && {
-                photo,
-                firstName,
-                lastName,
-                fathersName,
-                mobile,
-                email,
-                PAN,
-                dateOfJoining,
-                profitOrLossShare,
-              }),
-            };
-          }
-          return item;
-        }),
-      },
-    };
-
-    await User.findByIdAndUpdate({ _id: user._id }, updateField);
-
-    // send email for User Updated
-    const mailOptions = {
-      from: "taxjugnoo@gmail.com",
-      to: user.email,
-      subject: "Other Information Added Successfully",
-      text: `Hi ${user.name},
-
-      Other Information has been added successfully.
-
-      Keep it safe! If you need help, reach out to us.
-
-      Best,
-      Team Tax Jugnoo`,
-    };
-
-    sendEmail(mailOptions);
-
-    const updatedUser = await User.findOne({
-      mobileNumber: user.mobileNumber,
-    });
-
-    user = updatedUser.toObject();
-    delete user.otp;
-
-    return res.status(201).json({
-      data: user,
-      token: generateToken(user._id),
-      status: true,
-    });
-  } catch (error) {
-    console.error("Error in editOtherInfoTable:", error);
-    return res
-      .status(500)
-      .json({ error: "Internal Server Error", status: false });
-  }
-});
-
-const deleteOtherInfoEntry = asyncHandler(async (req, res) => {
-  try {
-    let user = req.user.toObject();
-    if (!user || !user.isMobileNumberVerified) {
-      return res
-        .status(400)
-        .json({ error: "Invalid user data", status: false });
-    }
-
-    const { tableName, id } = req.params;
-
-    if (!tableName || !id) {
+    if (!userInformation) {
       return res.status(400).json({
-        error: "Please provide tableName and ID to delete",
+        error: "Data Not Found",
         status: false,
       });
     }
@@ -1256,64 +1105,114 @@ const deleteOtherInfoEntry = asyncHandler(async (req, res) => {
     switch (tableName) {
       case "bank":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            bank: user.otherInformation.bank.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.bank.$[elem]`]: {
+              bankName,
+              accountNumber,
+              accountType,
+              IFSC,
+              _id: id,
+            },
           },
         };
         break;
       case "director":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            director: user.otherInformation.director.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.director.$[elem]`]: {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              aadhar,
+              passportNo,
+              DIN,
+              directorType,
+              dateOfJoining,
+              dateOfRetirement,
+              _id: id,
+            },
           },
         };
         break;
       case "shareholder":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            shareholder: user.otherInformation.shareholder.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.shareholder.$[elem]`]: {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              noOfShare,
+              faceValueOfShare,
+              _id: id,
+            },
           },
         };
         break;
       case "partnerLLP":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            partnerLLP: user.otherInformation.partnerLLP.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.partnerLLP.$[elem]`]: {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              DPIN,
+              IsDesignatedPartner,
+              profitOrLossShare,
+              _id: id,
+            },
           },
         };
         break;
       case "partnerFirm":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            partnerFirm: user.otherInformation.partnerFirm.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.partnerFirm.$[elem]`]: {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              profitOrLossShare,
+              _id: id,
+            },
           },
         };
         break;
       case "member":
         updateField = {
-          otherInformation: {
-            ...user.otherInformation,
-            member: user.otherInformation.member.filter(
-              (item) => item._id.toString() !== id
-            ),
+          $set: {
+            [`otherInformation.member.$[elem]`]: {
+              photo,
+              firstName,
+              lastName,
+              fathersName,
+              mobile,
+              email,
+              PAN,
+              dateOfJoining,
+              profitOrLossShare,
+              _id: id,
+            },
           },
         };
         break;
+
       // Add other cases for different tableName values...
 
       default:
@@ -1322,38 +1221,151 @@ const deleteOtherInfoEntry = asyncHandler(async (req, res) => {
           .json({ error: "Invalid tableName", status: false });
     }
 
-    await User.findByIdAndUpdate({ _id: user._id }, updateField);
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      updateField,
+      { new: true, arrayFilters: [{ "elem._id": id }] }
+    );
 
-    //send email for User Updated
+    // Send email for User Updated
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Other Information Updated Successfully",
+      text: `Hi ${user.name},
+
+Other Information has been updated Successfully.
+Keep it safe! If you need help, reach out to us.
+
+Best,
+Team Tax Jugnoo`,
+    };
+
+    userInformation = userInformation.toObject();
+
+    return res.status(201).json({
+      data: userInformation,
+      message: `Successfully updated ${tableName} table row with id ${id}`,
+      status: true,
+    });
+  } catch (error) {
+    console.error("Error in editOtherInfoTableRow:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal Server Error", status: false });
+  }
+});
+
+const deleteOtherInfoTableRow = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { memberId, tableName, id } = req.params;
+
+    if (!user || !user.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Invalid user data", status: false });
+    }
+
+    if (!memberId || !tableName || !id) {
+      return res.status(400).json({
+        error: "Please provide 'memberId', 'tableName', and 'id'",
+        status: false,
+      });
+    }
+
+    let userInformation = await Information.findOne({ userId: memberId });
+
+    if (!userInformation) {
+      return res.status(400).json({
+        error: "Data Not Found",
+        status: false,
+      });
+    }
+
+    let updateField = {};
+
+    switch (tableName) {
+      case "bank":
+        updateField = {
+          $pull: {
+            "otherInformation.bank": { _id: id },
+          },
+        };
+        break;
+      case "director":
+        updateField = {
+          $pull: {
+            "otherInformation.director": { _id: id },
+          },
+        };
+        break;
+      case "shareholder":
+        updateField = {
+          $pull: {
+            "otherInformation.shareholder": { _id: id },
+          },
+        };
+        break;
+      case "partnerLLP":
+        updateField = {
+          $pull: {
+            "otherInformation.partnerLLP": { _id: id },
+          },
+        };
+        break;
+      case "partnerFirm":
+        updateField = {
+          $pull: {
+            "otherInformation.partnerFirm": { _id: id },
+          },
+        };
+        break;
+      case "member":
+        updateField = {
+          $pull: {
+            "otherInformation.member": { _id: id },
+          },
+        };
+        break;
+
+      // Add other cases for different tableName values...
+
+      default:
+        return res
+          .status(400)
+          .json({ error: "Invalid tableName", status: false });
+    }
+
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      updateField,
+      { new: true }
+    );
+
+    // Send email for User Updated
     const mailOptions = {
       from: "taxjugnoo@gmail.com",
       to: user.email,
       subject: "Other Information Deleted Successfully",
       text: `Hi ${user.name},
 
-    Other Information has been deleted Successfully.
+Other Information has been deleted Successfully.
+Keep it safe! If you need help, reach out to us.
 
-    Keep it safe! If you need help, reach out to us.
-
-    Best,
-    Team Tax Jugnoo`,
+Best,
+Team Tax Jugnoo`,
     };
 
-    sendEmail(mailOptions);
-    const updatedUser = await User.findOne({
-      mobileNumber: user.mobileNumber,
-    });
+    userInformation = userInformation.toObject();
 
-    user = updatedUser.toObject();
-    delete user.otp;
-
-    return res.status(200).json({
-      data: user,
-      token: generateToken(user._id),
+    return res.status(201).json({
+      data: userInformation,
+      message: `Successfully deleted ${tableName} table row with id ${id}`,
       status: true,
     });
   } catch (error) {
-    console.error("Error in deleteOtherInfoEntry:", error);
+    console.error("Error in deleteOtherInfoTableRow:", error);
     return res
       .status(500)
       .json({ error: "Internal Server Error", status: false });
@@ -1465,8 +1477,8 @@ export {
   addBussiness,
   editBussiness,
   addOtherInfoTable,
-  editOtherInfoTable,
-  deleteOtherInfoEntry,
+  editOtherInfoTableRow,
+  deleteOtherInfoTableRow,
   addMember,
   getAllMember,
   deleteIdUser,
