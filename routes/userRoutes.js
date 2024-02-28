@@ -12,6 +12,7 @@ import {
   addBussiness,
   editBussiness,
   addBusinessRegistrations,
+  editBusinessRegistration,
   deleteBussiness,
   addOtherInfoTable,
   editOtherInfoTableRow,
@@ -50,6 +51,11 @@ router.post(
   "/addBusinessRegistrations/:memberId/:id",
   authMiddleware.protect,
   addBusinessRegistrations
+);
+router.put(
+  "/editBusinessRegistration/:memberId/:id",
+  authMiddleware.protect,
+  editBusinessRegistration
 );
 router.delete(
   "/deleteBussiness/:memberId/:id",
