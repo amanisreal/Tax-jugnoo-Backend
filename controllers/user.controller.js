@@ -729,10 +729,13 @@ const addBusinessRegistrations = asyncHandler(async (req, res) => {
     }
 
     // Update business information
-    userInformation.businessInformation[businessIndex].registrations = {
-      name,
-      information,
-    };
+    userInformation.businessInformation[businessIndex].registrations = [
+      ...userInformation.businessInformation[businessIndex].registrations,
+      {
+        name,
+        information,
+      },
+    ];
 
     // Save the updated user information
     userInformation = await Information.findOneAndUpdate(
