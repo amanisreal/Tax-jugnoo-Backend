@@ -13,6 +13,7 @@ import {
   editBussiness,
   addBusinessRegistrations,
   editBusinessRegistration,
+  deleteBusinessRegistration,
   deleteBussiness,
   addOtherInfoTable,
   editOtherInfoTableRow,
@@ -23,9 +24,9 @@ import {
   deleteIdUser,
   getUserData,
 } from "../controllers/user.controller.js";
-
 const router = express.Router();
 
+// apis
 router.get("/me", authMiddleware.protect, getMe);
 router.get("/user/:memberId", authMiddleware.protect, getUserData);
 router.route("/create").post(registerUser);
@@ -53,16 +54,20 @@ router.post(
   addBusinessRegistrations
 );
 router.put(
-  "/editBusinessRegistration/:memberId/:id",
+  "/editBusinessRegistration/:memberId/:id/:registrationId",
   authMiddleware.protect,
   editBusinessRegistration
+);
+router.delete(
+  "/deleteBusinessRegistration/:memberId/:id/:registrationId",
+  authMiddleware.protect,
+  deleteBusinessRegistration
 );
 router.delete(
   "/deleteBussiness/:memberId/:id",
   authMiddleware.protect,
   deleteBussiness
 );
-
 router.post(
   "/addOtherInfoTable/:memberId/:tableName",
   authMiddleware.protect,

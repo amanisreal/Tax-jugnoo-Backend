@@ -872,6 +872,78 @@ const editBusinessRegistration = asyncHandler(async (req, res) => {
   }
 });
 
+const deleteBusinessRegistration = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { id, memberId, registrationId } = req.params;
+
+    // Validation checks
+    if (!user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please verify your mobile number.", status: false });
+    }
+
+    // Fetch user information
+    let userInformation = await Information.findOne({ userId: memberId });
+
+    // Find the index of the business by ID
+    const businessIndex = userInformation.businessInformation.findIndex(
+      (item) => item._id == id
+    );
+
+    if (businessIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Business not found", status: false });
+    }
+
+    // Find the index of the registration within the business
+    const registrationIndex = userInformation.businessInformation[
+      businessIndex
+    ].registrations.findIndex(
+      (registration) => registration._id == registrationId
+    );
+
+    if (registrationIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Registration not found", status: false });
+    }
+
+    // Remove the specific registration from the array
+    userInformation.businessInformation[businessIndex].registrations.splice(
+      registrationIndex,
+      1
+    );
+
+    // Save the updated user information
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      { businessInformation: userInformation.businessInformation },
+      { new: true }
+    );
+
+    // Send email notification (if needed)
+    // ...
+
+    userInformation = userInformation.toObject();
+
+    return res.status(200).json({
+      data: userInformation,
+      status: true,
+      message: "Business Registration Deleted Successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
 const deleteBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
@@ -1654,6 +1726,7 @@ export {
   editBussiness,
   addBusinessRegistrations,
   editBusinessRegistration,
+  deleteBusinessRegistration,
   addOtherInfoTable,
   editOtherInfoTableRow,
   deleteOtherInfoTableRow,
