@@ -695,6 +695,85 @@ const editBussiness = asyncHandler(async (req, res) => {
   }
 });
 
+const addBusinessRegistrations = asyncHandler(async (req, res) => {
+  try {
+    let user = req.user.toObject();
+    const { name, information } = req.body;
+    const { id, memberId } = req.params;
+
+    // Validation checks
+    if (!name || !information) {
+      return res
+        .status(400)
+        .json({ error: "Please provide all fields.", status: false });
+    }
+
+    if (!user?.isMobileNumberVerified) {
+      return res
+        .status(400)
+        .json({ error: "Please verify your mobile number.", status: false });
+    }
+
+    // Fetch user information
+    let userInformation = await Information.findOne({ userId: memberId });
+
+    // Find the index of the business by ID
+    const businessIndex = userInformation.businessInformation.findIndex(
+      (item) => item._id == id
+    );
+
+    if (businessIndex === -1) {
+      return res
+        .status(400)
+        .json({ error: "Business not found", status: false });
+    }
+
+    // Update business information
+    userInformation.businessInformation[businessIndex].registrations = {
+      name,
+      information,
+    };
+
+    // Save the updated user information
+    userInformation = await Information.findOneAndUpdate(
+      { userId: memberId },
+      { businessInformation: userInformation.businessInformation },
+      { new: true }
+    );
+
+    // Send email notification
+    const mailOptions = {
+      from: "taxjugnoo@gmail.com",
+      to: user.email,
+      subject: "Business Details Added Successfully",
+      text: `Hi ${user.name},
+
+  Business Details have been added successfully.
+  Keep it safe! If you need help, reach out to us.
+  
+  Best,
+  Team Tax Jugnoo`,
+    };
+
+    sendEmail(mailOptions);
+
+    userInformation = userInformation.toObject();
+
+    return res.status(201).json({
+      data: userInformation,
+      status: true,
+      message: "Business Updated Successfully",
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({
+      error: "Internal Server Error",
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
 const deleteBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
@@ -1475,6 +1554,7 @@ export {
   editIdUser,
   addBussiness,
   editBussiness,
+  addBusinessRegistrations,
   addOtherInfoTable,
   editOtherInfoTableRow,
   deleteOtherInfoTableRow,

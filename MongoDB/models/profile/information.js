@@ -4,13 +4,15 @@ const idSchema = new mongoose.Schema({
   name: String,
   information: String,
 });
+const registrationSchema = new mongoose.Schema({
+  name: String,
+  information: String,
+});
 
 const businessInformationSchema = new mongoose.Schema({
   businessName: String,
   businessAddress: String,
-  gstNo: String,
-  msme: String,
-  shopEst: String,
+  registrations: { type: [registrationSchema], default: [] },
 });
 
 const bankSchema = new mongoose.Schema({

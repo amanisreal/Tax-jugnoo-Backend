@@ -1,8 +1,6 @@
 import express from "express";
 import authMiddleware from "../middlewares/authMiddleware.js";
-
 import {
-  // getAllUser,
   registerUser,
   loginUser,
   getMe,
@@ -13,6 +11,7 @@ import {
   editIdUser,
   addBussiness,
   editBussiness,
+  addBusinessRegistrations,
   deleteBussiness,
   addOtherInfoTable,
   editOtherInfoTableRow,
@@ -46,6 +45,11 @@ router.put(
   "/editBussiness/:memberId/:id",
   authMiddleware.protect,
   editBussiness
+);
+router.post(
+  "/addBusinessRegistrations/:memberId/:id",
+  authMiddleware.protect,
+  addBusinessRegistrations
 );
 router.delete(
   "/deleteBussiness/:memberId/:id",
