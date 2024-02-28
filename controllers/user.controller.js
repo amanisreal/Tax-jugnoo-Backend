@@ -624,10 +624,10 @@ const addBussiness = asyncHandler(async (req, res) => {
 const editBussiness = asyncHandler(async (req, res) => {
   try {
     let user = req.user.toObject();
-    const { businessName, businessAddress, gstNo, msme, shopEst } = req.body;
+    const { businessName, businessAddress } = req.body;
     const { id, memberId } = req.params;
 
-    if (!businessName || !businessAddress || !gstNo || !msme || !shopEst) {
+    if (!businessName || !businessAddress) {
       return res
         .status(400)
         .json({ error: "Please add all fields!", status: false });
@@ -653,9 +653,6 @@ const editBussiness = asyncHandler(async (req, res) => {
     userInformation.businessInformation[idIndex] = {
       businessName,
       businessAddress,
-      gstNo,
-      msme,
-      shopEst,
       _id: id,
     };
 
@@ -674,7 +671,6 @@ const editBussiness = asyncHandler(async (req, res) => {
       text: `Hi ${user.name},
 
   Bussiness Details has been added Successfully .
-
   Keep it safe! If you need help, reach out to us.
   
   Best,

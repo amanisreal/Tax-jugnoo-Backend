@@ -1,9 +1,7 @@
 import express from "express";
 import cors from "cors";
 import * as dotenv from "dotenv";
-
 import connectDB from "./MongoDB/connect.js";
-
 import userRoutes from "./routes/userRoutes.js";
 import categoryRoutes from "./routes/categoryPlanRoutes.js";
 import planlistRoutes from "./routes/planListRoutes.js";

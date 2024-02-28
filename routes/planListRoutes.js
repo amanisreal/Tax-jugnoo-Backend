@@ -7,8 +7,6 @@ import {
 
 const router = express.Router();
 
-// router.post("/add", createCategoryPlan);
-
 router.route("/add").post(createPlanList);
 router.route("/all").get(getAllPlansList);
 router.route("/update/:id").put(updatePlanList);
